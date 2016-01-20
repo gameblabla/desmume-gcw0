@@ -1542,12 +1542,12 @@ void GPU::_spriteRender(u8 * dst, u8 * dst_alpha, u8 * typeTab, u8 * prioTab)
 		SlurpOAM(spriteInfo, gpu->oam, i);
 
 		//for each sprite:
-		if(cost>=2130)
-		{
+		/*if(cost>=2130)
+		{*/
 			//out of sprite rendering time
 			//printf("sprite overflow!\n");
 			//return;		
-		}
+		/*}*/
 
 		//do we incur a cost if a sprite is disabled?? we guess so.
 		cost += 2;

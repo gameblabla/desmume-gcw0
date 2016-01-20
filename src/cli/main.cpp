@@ -67,7 +67,7 @@ volatile bool execute = false;
 
 static float nds_screen_size_ratio = 1.0f;
 
-#define DISPLAY_FPS
+//#define DISPLAY_FPS
 
 #ifdef DISPLAY_FPS
 #define NUM_FRAMES_TO_TIME 60
@@ -107,23 +107,25 @@ const char * save_type_names[] = {
 
 /* Our keyboard config is different because of the directional keys */
 /* Please note that m is used for fake microphone */
+/* Default Keyboard configuration */
+
 const u16 cli_kb_cfg[NB_KEYS] =
   { 
-    SDLK_x,         // A
-    SDLK_z,         // B
+    SDLK_LCTRL,         // A
+    SDLK_LALT,         // B
     SDLK_RSHIFT,    // select
     SDLK_RETURN,    // start
     SDLK_RIGHT,     // Right
-    SDLK_LEFT,      // Left
-    SDLK_UP,        // Up
-    SDLK_DOWN,      // Down
-    SDLK_w,         // R
-    SDLK_q,         // L
-    SDLK_s,         // X
-    SDLK_a,         // Y
+    SDLK_LEFT,      	// Left
+    SDLK_UP,        	// Up
+    SDLK_DOWN,     		// Down
+    SDLK_BACKSPACE,  	// R
+    SDLK_TAB,         	// L
+    SDLK_LSHIFT,         // X
+    SDLK_SPACE,         // Y
     SDLK_p,         // DEBUG
     SDLK_o,         // BOOST
-    SDLK_BACKSPACE, // Lid
+    SDLK_z, // Lid
   };
 
 class configured_features : public CommandLine
@@ -147,7 +149,7 @@ static void
 init_config( class configured_features *config) {
 
   config->auto_pause = 0;
-  config->frameskip = 0;
+  config->frameskip = 3;
 
   config->engine_3d = 1;
   config->savetype = 0;
@@ -327,7 +329,7 @@ resizeWindow( u16 width, u16 height, GLuint *screen_texture) {
   int comp_height = 2 * height;
   GLenum errCode;
 
-  surface = SDL_SetVideoMode(width, height, 32, sdl_videoFlags);
+  surface = SDL_SetVideoMode(width, height, 16, sdl_videoFlags);
   initGL(screen_texture);
 
 #ifdef HAVE_LIBAGG
@@ -669,8 +671,8 @@ int main(int argc, char ** argv) {
   }
 
   /* This checks if hardware blits can be done */
-  if ( videoInfo->blit_hw )
-    sdl_videoFlags |= SDL_HWACCEL;
+  /*if ( videoInfo->blit_hw )
+    sdl_videoFlags |= SDL_HWACCEL;*/
 
 #ifdef INCLUDE_OPENGL_2D
   if ( my_config.opengl_2d) {
@@ -690,7 +692,7 @@ int main(int argc, char ** argv) {
     /* Sets up OpenGL double buffering */
     SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
-    surface = SDL_SetVideoMode( 256, 192 * 2, 32,
+    surface = SDL_SetVideoMode( 256, 192 * 2, 16,
                                 sdl_videoFlags );
 
     /* Verify there is a surface */
@@ -711,7 +713,7 @@ int main(int argc, char ** argv) {
   if ( !my_config.opengl_2d) {
 #endif
     sdl_videoFlags |= SDL_SWSURFACE;
-    surface = SDL_SetVideoMode(256, 384, 32, sdl_videoFlags);
+    surface = SDL_SetVideoMode(256, 384, 16, sdl_videoFlags);
 
     if ( !surface ) {
       fprintf( stderr, "Video mode set failed: %s\n", SDL_GetError( ) );
