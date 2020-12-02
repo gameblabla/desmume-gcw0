@@ -100,13 +100,13 @@ static const s16 wavedutytbl[8][8] = {
 
 static s32 precalcdifftbl[89][16];
 static u8 precalcindextbl[89][8];
-static double cos_lut[COSINE_INTERPOLATION_RESOLUTION];
+static float cos_lut[COSINE_INTERPOLATION_RESOLUTION];
 
-static const double ARM7_CLOCK = 33513982;
+static const float ARM7_CLOCK = 33513982;
 
-static const double samples_per_hline = (DESMUME_SAMPLE_RATE / 59.8261f) / 263.0f;
+static const float samples_per_hline = (DESMUME_SAMPLE_RATE / 59.8261f) / 263.0f;
 
-static double samples = 0;
+static float samples = 0;
 
 template<typename T>
 static FORCEINLINE T MinMax(T val, T min, T max)
@@ -190,7 +190,7 @@ int SPU_Init(int coreid, int buffersize)
 	
 	// Build the cosine interpolation LUT
 	for(unsigned int i = 0; i < COSINE_INTERPOLATION_RESOLUTION; i++)
-		cos_lut[i] = (1.0 - cos(((double)i/(double)COSINE_INTERPOLATION_RESOLUTION) * M_PI)) * 0.5;
+		cos_lut[i] = (1.0 - cos(((float)i/(float)COSINE_INTERPOLATION_RESOLUTION) * M_PI)) * 0.5;
 
 	SPU_core = new SPU_struct((int)ceil(samples_per_hline));
 	SPU_Reset();
@@ -339,7 +339,7 @@ void SPU_struct::ShutUp()
 
 static FORCEINLINE void adjust_channel_timer(channel_struct *chan)
 {
-	chan->sampinc = (((double)ARM7_CLOCK) / (DESMUME_SAMPLE_RATE * 2)) / (double)(0x10000 - chan->timer);
+	chan->sampinc = (((float)ARM7_CLOCK) / (DESMUME_SAMPLE_RATE * 2)) / (float)(0x10000 - chan->timer);
 }
 
 void SPU_struct::KeyProbe(int chan_num)
@@ -412,11 +412,11 @@ void SPU_struct::KeyOn(int channel)
 	default: break;
 	}
 
-	thischan.double_totlength_shifted = (double)(thischan.totlength << format_shift[thischan.format]);
+	thischan.float_totlength_shifted = (float)(thischan.totlength << format_shift[thischan.format]);
 
 	if(thischan.format != 3)
 	{
-		if(thischan.double_totlength_shifted == 0)
+		if(thischan.float_totlength_shifted == 0)
 		{
 			printf("INFO: Stopping channel %d due to zero length\n",channel);
 			thischan.status = CHANSTAT_STOPPED;
@@ -986,10 +986,10 @@ void SPU_struct::WriteLong(u32 addr, u32 val)
 	} //switch on address
 }
 
-template<SPUInterpolationMode INTERPOLATE_MODE> static FORCEINLINE s32 Interpolate(s32 a, s32 b, double ratio)
+template<SPUInterpolationMode INTERPOLATE_MODE> static FORCEINLINE s32 Interpolate(s32 a, s32 b, float ratio)
 {
-	double sampleA = (double)a;
-	double sampleB = (double)b;
+	float sampleA = (float)a;
+	float sampleB = (float)b;
 	ratio = ratio - sputrunc(ratio);
 	
 	switch (INTERPOLATE_MODE)
@@ -998,7 +998,7 @@ template<SPUInterpolationMode INTERPOLATE_MODE> static FORCEINLINE s32 Interpola
 			// Cosine Interpolation Formula:
 			// ratio2 = (1 - cos(ratio * M_PI)) / 2
 			// sampleI = sampleA * (1 - ratio2) + sampleB * ratio2
-			return s32floor((cos_lut[(unsigned int)(ratio * (double)COSINE_INTERPOLATION_RESOLUTION)] * (sampleB - sampleA)) + sampleA);
+			return s32floor((cos_lut[(unsigned int)(ratio * (float)COSINE_INTERPOLATION_RESOLUTION)] * (sampleB - sampleA)) + sampleA);
 			break;
 			
 		case SPUInterpolation_Linear:
@@ -1175,14 +1175,14 @@ template<int FORMAT> static FORCEINLINE void TestForLoop(SPU_struct *SPU, channe
 
 	chan->sampcnt += chan->sampinc;
 
-	if (chan->sampcnt > chan->double_totlength_shifted)
+	if (chan->sampcnt > chan->float_totlength_shifted)
 	{
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)
 		{
-			while (chan->sampcnt > chan->double_totlength_shifted)
-				chan->sampcnt -= chan->double_totlength_shifted - (double)(chan->loopstart << shift);
-			//chan->sampcnt = (double)(chan->loopstart << shift);
+			while (chan->sampcnt > chan->float_totlength_shifted)
+				chan->sampcnt -= chan->float_totlength_shifted - (float)(chan->loopstart << shift);
+			//chan->sampcnt = (float)(chan->loopstart << shift);
 		}
 		else
 		{
@@ -1202,14 +1202,14 @@ static FORCEINLINE void TestForLoop2(SPU_struct *SPU, channel_struct *chan)
 
 	chan->sampcnt += chan->sampinc;
 
-	if (chan->sampcnt > chan->double_totlength_shifted)
+	if (chan->sampcnt > chan->float_totlength_shifted)
 	{
 		// Do we loop? Or are we done?
 		if (chan->repeat == 1)
 		{
-			double step = (chan->double_totlength_shifted - (double)(chan->loopstart << 3));
+			float step = (chan->float_totlength_shifted - (float)(chan->loopstart << 3));
 			
-			while (chan->sampcnt > chan->double_totlength_shifted) chan->sampcnt -= step;
+			while (chan->sampcnt > chan->float_totlength_shifted) chan->sampcnt -= step;
 
 			if(chan->loop_index == K_ADPCM_LOOPING_RECOVERY_INDEX)
 			{
@@ -1687,8 +1687,8 @@ void spu_savestate(EMUFILE* os)
 		write16le(chan.timer,os);
 		write16le(chan.loopstart,os);
 		write32le(chan.length,os);
-		write64le(double_to_u64(chan.sampcnt),os);
-		write64le(double_to_u64(chan.sampinc),os);
+		write64le(float_to_u64(chan.sampcnt),os);
+		write64le(float_to_u64(chan.sampinc),os);
 		write32le(chan.lastsampcnt,os);
 		write16le(chan.pcm16b,os);
 		write16le(chan.pcm16b_last,os);
@@ -1698,7 +1698,7 @@ void spu_savestate(EMUFILE* os)
 		write8le(chan.keyon,os);
 	}
 
-	write64le(double_to_u64(samples),os);
+	write64le(float_to_u64(samples),os);
 
 	write8le(spu->regs.mastervol,os);
 	write8le(spu->regs.ctl_left,os);
@@ -1720,7 +1720,7 @@ void spu_savestate(EMUFILE* os)
 		write8le(spu->regs.cap[i].runtime.running,os);
 		write32le(spu->regs.cap[i].runtime.curdad,os);
 		write32le(spu->regs.cap[i].runtime.maxdad,os);
-		write_double_le(spu->regs.cap[i].runtime.sampcnt,os);
+		write_float_le(spu->regs.cap[i].runtime.sampcnt,os);
 	}
 
 	for(int i=0;i<2;i++)
@@ -1755,12 +1755,12 @@ bool spu_loadstate(EMUFILE* is, int size)
 		read16le(&chan.loopstart,is);
 		read32le(&chan.length,is);
 		chan.totlength = chan.length + chan.loopstart;
-		chan.double_totlength_shifted = (double)(chan.totlength << format_shift[chan.format]);
-		//printf("%f\n",chan.double_totlength_shifted);
+		chan.float_totlength_shifted = (float)(chan.totlength << format_shift[chan.format]);
+		//printf("%f\n",chan.float_totlength_shifted);
 		if(version >= 2)
 		{
-			read64le(&temp64,is); chan.sampcnt = u64_to_double(temp64);
-			read64le(&temp64,is); chan.sampinc = u64_to_double(temp64);
+			read64le(&temp64,is); chan.sampcnt = u64_to_float(temp64);
+			read64le(&temp64,is); chan.sampinc = u64_to_float(temp64);
 		}
 		else
 		{
@@ -1782,7 +1782,7 @@ bool spu_loadstate(EMUFILE* is, int size)
 	}
 
 	if(version>=2) {
-		read64le(&temp64,is); samples = u64_to_double(temp64);
+		read64le(&temp64,is); samples = u64_to_float(temp64);
 	}
 
 	if(version>=4)
@@ -1810,7 +1810,7 @@ bool spu_loadstate(EMUFILE* is, int size)
 			read8le(&spu->regs.cap[i].runtime.running,is);
 			read32le(&spu->regs.cap[i].runtime.curdad,is);
 			read32le(&spu->regs.cap[i].runtime.maxdad,is);
-			read_double_le(&spu->regs.cap[i].runtime.sampcnt,is);
+			read_float_le(&spu->regs.cap[i].runtime.sampcnt,is);
 		}
 	}
 

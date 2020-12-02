@@ -311,19 +311,19 @@ inline void FlipByteOrder(u8 *src, u32 count)
 
 
 
-inline u64 double_to_u64(double d) {
+inline u64 float_to_u64(float d) {
 	union {
 		u64 a;
-		double b;
+		float b;
 	} fuxor;
 	fuxor.b = d;
 	return fuxor.a;
 }
 
-inline double u64_to_double(u64 u) {
+inline float u64_to_float(u64 u) {
 	union {
 		u64 a;
-		double b;
+		float b;
 	} fuxor;
 	fuxor.a = u;
 	return fuxor.b;

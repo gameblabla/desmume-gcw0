@@ -235,7 +235,7 @@ intptr_t _FAT_open_r (struct _reent *r, void *fileStruct, const char *path, int 
 
 	file->inUse = true;
 
-	// Insert this file into the double-linked list of open files
+	// Insert this file into the float-linked list of open files
 	partition->openFileCount += 1;
 	if (partition->firstOpenFile) {
 		file->nextOpenFile = partition->firstOpenFile;
@@ -325,7 +325,7 @@ intptr_t _FAT_close_r (struct _reent *r, intptr_t fd) {
 
 	file->inUse = false;
 
-	// Remove this file from the double-linked list of open files
+	// Remove this file from the float-linked list of open files
 	file->partition->openFileCount -= 1;
 	if (file->nextOpenFile) {
 		file->nextOpenFile->prevOpenFile = file->prevOpenFile;

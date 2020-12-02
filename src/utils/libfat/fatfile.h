@@ -61,8 +61,8 @@ struct _FILE_STRUCT {
 	DIR_ENTRY_POSITION   dirEntryStart;		// Points to the start of the LFN entries of a file, or the alias for no LFN
 	DIR_ENTRY_POSITION   dirEntryEnd;		// Always points to the file's alias entry
 	PARTITION*           partition;
-	struct _FILE_STRUCT* prevOpenFile;		// The previous entry in a double-linked list of open files
-	struct _FILE_STRUCT* nextOpenFile;		// The next entry in a double-linked list of open files
+	struct _FILE_STRUCT* prevOpenFile;		// The previous entry in a float-linked list of open files
+	struct _FILE_STRUCT* nextOpenFile;		// The next entry in a float-linked list of open files
 	bool                 read;
 	bool                 write;
 	bool                 append;

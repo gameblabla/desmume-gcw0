@@ -1583,7 +1583,7 @@ void GPU::_spriteRender(u8 * dst, u8 * dst_alpha, u8 * typeTab, u8 * prioTab)
 			fieldX = sprSize.x;
 			fieldY = sprSize.y;
 
-			// If we are using double size mode, double our control vars
+			// If we are using float size mode, float our control vars
 			if (spriteInfo->RotScale & 2)
 			{
 				fieldX <<= 1;

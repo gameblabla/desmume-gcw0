@@ -92,14 +92,6 @@ FORCEINLINE u32 u32floor(float f)
 	return (u32)f;
 #endif
 }
-FORCEINLINE u32 u32floor(double d)
-{
-#ifdef ENABLE_SSE2
-	return (u32)_mm_cvttsd_si32(_mm_set_sd(d));
-#else
-	return (u32)d;
-#endif
-}
 
 //same as above but works for negative values too.
 //be sure that the results are the same thing as floorf!
@@ -110,10 +102,6 @@ FORCEINLINE s32 s32floor(float f)
 #else
 	return (s32)floorf(f);
 #endif
-}
-FORCEINLINE s32 s32floor(double d)
-{
-	return s32floor((float)d);
 }
 
 //switched SSE2 functions

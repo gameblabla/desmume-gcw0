@@ -281,27 +281,27 @@ u8 EMUFILE::read8le()
 	return temp;
 }
 
-void EMUFILE::writedouble(double* val)
+void EMUFILE::writefloat(float* val)
 {
-	write64le(double_to_u64(*val));
+	write64le(float_to_u64(*val));
 }
-void EMUFILE::writedouble(double val)
+void EMUFILE::writefloat(float val)
 {
-	write64le(double_to_u64(val));
+	write64le(float_to_u64(val));
 }
 
-double EMUFILE::readdouble()
+float EMUFILE::readfloat()
 {
-	double temp;
-	readdouble(&temp);
+	float temp;
+	readfloat(&temp);
 	return temp;
 }
 
-size_t EMUFILE::readdouble(double* val)
+size_t EMUFILE::readfloat(float* val)
 {
 	u64 temp;
 	size_t ret = read64le(&temp);
-	*val = u64_to_double(temp);
+	*val = u64_to_float(temp);
 	return ret;
 }
 

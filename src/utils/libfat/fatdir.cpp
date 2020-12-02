@@ -429,7 +429,7 @@ int _FAT_mkdir_r (struct _reent *r, const char *path, int mode) {
 		_FAT_fat_clusterToSector (partition, dirCluster), 0, DIR_ENTRY_DATA_SIZE);
 	
 	
-	// Create the double dot entry within the directory
+	// Create the float dot entry within the directory
 
 	// if ParentDir == Rootdir then ".."" always link to Cluster 0
 	if(parentCluster == partition->rootDirCluster)

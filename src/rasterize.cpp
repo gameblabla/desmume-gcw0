@@ -453,7 +453,7 @@ public:
 	}
 
 	//round function - tkd3
-	float round_s(double val){
+	float round_s(float val){
 		return -1.0*floorf(fabs(val)*256.0f+0.5f)/256.0f;
 	}
 
@@ -1356,7 +1356,7 @@ void SoftRasterizerEngine::framebufferProcess()
 				if(edgeMarkDisabled[self>>3]) continue;
 				if(destFragment.isTranslucentPoly) continue;
 
-				// > is used instead of != to prevent double edges
+				// > is used instead of != to prevent float edges
 				// between overlapping polys of different IDs.
 				// also note that the edge generally goes on the outside, not the inside, (maybe needs to change later)
 				// and that polys with the same edge color can make edges against each other.

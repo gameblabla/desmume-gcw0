@@ -987,7 +987,7 @@ TEMPLATE static u32 Diff16bitUnFilter()
 
 TEMPLATE static u32 bios_sqrt()
 {
-     cpu->R[0] = (u32)sqrt((double)(cpu->R[0]));
+     cpu->R[0] = (u32)sqrt((float)(cpu->R[0]));
      return 1;
 }
 

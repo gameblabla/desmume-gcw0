@@ -106,10 +106,10 @@ public:
 	void write8le(u8 val);
 	size_t read8le(u8* val);
 	u8 read8le();
-	void writedouble(double* val);
-	void writedouble(double val);
-	double readdouble();
-	size_t readdouble(double* val);
+	void writefloat(float* val);
+	void writefloat(float val);
+	float readfloat();
+	size_t readfloat(float* val);
 
 	virtual int fseek(int offset, int origin) = 0;
 

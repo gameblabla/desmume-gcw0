@@ -1293,7 +1293,7 @@ void FASTCALL MMU_writeToGCControl(u32 val)
 	u8 secureareamode = (val>>28)&1;
 	//RESB bit 29?
 	u8 wr = (val>>30)&1;
-	u8 start = (val>>31)&1; //doubles as busy on read
+	u8 start = (val>>31)&1; //floats as busy on read
 	static const int blocksize_table[] = {0,0x200,0x400,0x800,0x1000,0x2000,0x4000,4};
 	int blocksize = blocksize_table[blocksize_field];
 

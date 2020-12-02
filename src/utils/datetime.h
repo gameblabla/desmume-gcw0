@@ -160,11 +160,11 @@ public:
 	int get_Minutes() const { return (int) (_ticks % TicksPerHour / TicksPerMinute); }
 	int get_Seconds() const { return (int) (_ticks % TicksPerMinute / TicksPerSecond); }
 	s64 get_Ticks() const { return _ticks; }
-	double get_TotalDays() const { return (double) _ticks / TicksPerDay; }
-	double get_TotalHours() const { return (double) _ticks / TicksPerHour; }
-	double get_TotalMilliseconds() const { return (double) _ticks  / TicksPerMillisecond; }
-	double get_TotalMinutes() const { return (double) _ticks / TicksPerMinute; }
-	double get_TotalSeconds() const { return (double) _ticks / TicksPerSecond; }
+	float get_TotalDays() const { return (float) _ticks / TicksPerDay; }
+	float get_TotalHours() const { return (float) _ticks / TicksPerHour; }
+	float get_TotalMilliseconds() const { return (float) _ticks  / TicksPerMillisecond; }
+	float get_TotalMinutes() const { return (float) _ticks / TicksPerMinute; }
+	float get_TotalSeconds() const { return (float) _ticks / TicksPerSecond; }
 
 	TimeSpan Add (const TimeSpan &ts)
 	{
@@ -194,27 +194,27 @@ public:
 		//catch (OverflowException) throw new OverflowException (Locale.GetText ("This TimeSpan value is MinValue so you cannot get the duration."));
 	}
 
-	static TimeSpan FromDays (double value)
+	static TimeSpan FromDays (float value)
 	{
 		return From (value, TicksPerDay);
 	}
 
-	static TimeSpan FromHours (double value)
+	static TimeSpan FromHours (float value)
 	{
 		return From (value, TicksPerHour);
 	}
 
-	static TimeSpan FromMinutes (double value)
+	static TimeSpan FromMinutes (float value)
 	{
 		return From (value, TicksPerMinute);
 	}
 
-	static TimeSpan FromSeconds (double value)
+	static TimeSpan FromSeconds (float value)
 	{
 		return From (value, TicksPerSecond);
 	}
 
-	static TimeSpan FromMilliseconds (double value)
+	static TimeSpan FromMilliseconds (float value)
 	{
 		return From (value, TicksPerMillisecond);
 	}
@@ -343,7 +343,7 @@ private:
 		return t;
 	}
 
-	static TimeSpan From (double value, s64 tickMultiplicator) 
+	static TimeSpan From (float value, s64 tickMultiplicator) 
 	{
 		//a bunch of error handling removed
 
@@ -373,7 +373,7 @@ class DateTime
 private:
 	TimeSpan ticks;
 
-	static inline double round(const double x) { return floor(x + 0.5); }
+	static inline float round(const float x) { return floor(x + 0.5); }
 
 	static const int dp400 = 146097;
 	static const int dp100 = 36524;
@@ -616,7 +616,7 @@ public:
 		return ret;
 	}
 
-	DateTime AddDays (double value) const
+	DateTime AddDays (float value) const
 	{
 		return AddMilliseconds (round(value * 86400000));
 	}
@@ -630,12 +630,12 @@ public:
 		return DateTime (value + ticks.get_Ticks());
 	}
 
-	DateTime AddHours (double value) const
+	DateTime AddHours (float value) const
 	{
 		return AddMilliseconds (value * 3600000);
 	}
 
-	DateTime AddMilliseconds (double value) const
+	DateTime AddMilliseconds (float value) const
 	{
 		//removed error handling
 		/*		if ((value * TimeSpan.TicksPerMillisecond) > long.MaxValue ||
@@ -647,7 +647,7 @@ public:
 		return AddTicks (msticks);
 	}
 
-	DateTime AddMinutes (double value) const
+	DateTime AddMinutes (float value) const
 	{
 		return AddMilliseconds (value * 60000);
 	}
@@ -679,7 +679,7 @@ public:
 		return  temp.Add (get_TimeOfDay());
 	}
 
-	DateTime AddSeconds (double value) const
+	DateTime AddSeconds (float value) const
 	{
 		return AddMilliseconds (value * 1000);
 	}

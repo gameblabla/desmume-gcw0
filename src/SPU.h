@@ -38,7 +38,6 @@ class EMUFILE;
 
 //who made these static? theyre used in multiple places.
 FORCEINLINE u32 sputrunc(float f) { return u32floor(f); }
-FORCEINLINE u32 sputrunc(double d) { return u32floor(d); }
 FORCEINLINE s32 spumuldiv7(s32 val, u8 multiplier) {
 	//assert(multiplier <= 127);
 	return (multiplier == 127) ? val : ((val * multiplier) >> 7);
@@ -88,7 +87,7 @@ struct channel_struct
 						loopstart(0),
 						length(0),
 						totlength(0),
-						double_totlength_shifted(0.0),
+						float_totlength_shifted(0.0),
 						sampcnt(0.0),
 						sampinc(0.0),
 						lastsampcnt(0),
@@ -115,9 +114,9 @@ struct channel_struct
    u16 loopstart;
    u32 length;
    u32 totlength;
-   double double_totlength_shifted;
-   double sampcnt;
-   double sampinc;
+   float float_totlength_shifted;
+   float sampcnt;
+   float sampinc;
    // ADPCM specific
    u32 lastsampcnt;
    s16 pcm16b, pcm16b_last;
@@ -195,7 +194,7 @@ public:
 			   u8 running;
 			   u32 curdad;
 			   u32 maxdad;
-			   double sampcnt;
+			   float sampcnt;
 			   SPUFifo fifo;
 		   } runtime;
 	   } cap[2];

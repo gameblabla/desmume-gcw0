@@ -876,7 +876,7 @@ static void gfx3d_glLightDirection_cache(int index)
 
 	//normalize the half angle vector
 	//can't believe the hardware really does this... but yet it seems...
-	s32 halfLength = ((s32)(sqrt((double)vec3dot_fixed32(cacheHalfVector[index],cacheHalfVector[index]))))<<6;
+	s32 halfLength = ((s32)(sqrt((float)vec3dot_fixed32(cacheHalfVector[index],cacheHalfVector[index]))))<<6;
 
 	if(halfLength!=0)
 	{
