@@ -52,7 +52,9 @@
 #include "texcache.h"
 #include "MMU.h"
 #include "NDSSystem.h"
+#ifdef MULTITHREADING
 #include "utils/task.h"
+#endif
 
 //#undef FORCEINLINE
 //#define FORCEINLINE
@@ -982,11 +984,11 @@ public:
 static SoftRasterizerEngine mainSoftRasterizer;
 
 #ifdef MULTITHREADING
-#define _MAX_CORES 1
-#else
 #define _MAX_CORES 16
-#endif
 static Task rasterizerUnitTask[_MAX_CORES];
+#else
+#define _MAX_CORES 1
+#endif
 static RasterizerUnit<true> rasterizerUnit[_MAX_CORES];
 static RasterizerUnit<false> _HACK_viewer_rasterizerUnit;
 static unsigned int rasterizerCores = 0;
@@ -1016,10 +1018,6 @@ static char SoftRastInit(void)
 		_HACK_viewer_rasterizerUnit.SLI_VALUE = 0;
 
 #ifdef MULTITHREADING
-		rasterizerCores = 1;
-		rasterizerUnit[0].SLI_MASK = 0;
-		rasterizerUnit[0].SLI_VALUE = 0;
-#else
 		rasterizerCores = CommonSettings.num_cores;
 
 		if (rasterizerCores > _MAX_CORES) 
@@ -1040,6 +1038,10 @@ static char SoftRastInit(void)
 				rasterizerUnitTask[i].start(false);
 			}
 		}
+#else
+		rasterizerCores = 1;
+		rasterizerUnit[0].SLI_MASK = 0;
+		rasterizerUnit[0].SLI_VALUE = 0;
 #endif
 	}
 

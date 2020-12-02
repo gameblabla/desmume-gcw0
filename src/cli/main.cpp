@@ -120,7 +120,21 @@ uint32_t sdl_quit = 0;
  * */
 static void Draw( void)
 {
+#ifdef GKD350H
+	SDL_Rect srcrect;
+	srcrect.x = 32;
+	srcrect.y = 0;
+	srcrect.w = 256;
+	srcrect.h = 240;
+	/*SDL_Rect dstrect;
+	dstrect.x = 80;
+	dstrect.y = 0;
+	dstrect.w = 160;
+	dstrect.h = 240;*/
+	SDL_BlitSurface(rl_sf, NULL, surface, &srcrect);
+#else
 	SDL_BlitSurface(rl_sf, 0, surface, 0);
+#endif
 	SDL_Flip(surface);
 	return;
 }
@@ -259,8 +273,12 @@ int main(int argc, char ** argv) {
       return 1;
 	}
 	SDL_WM_SetCaption("Desmume SDL", NULL);
-
+	SDL_ShowCursor(0);
+#ifdef GKD350H
+	surface = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
+#else
 	surface = SDL_SetVideoMode(256, 384, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
+#endif
     rl_sf = SDL_CreateRGBSurfaceFrom((void*)&GPU_screen, 256, 384, 16, 512, 0x001F, 0x03E0, 0x7C00, 0);
 
     if ( !surface ) {

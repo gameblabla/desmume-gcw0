@@ -27,7 +27,9 @@
 #include "utils/decrypt/decrypt.h"
 #include "utils/decrypt/crc.h"
 #include "utils/advanscene.h"
+#ifdef MULTITHREADING
 #include "utils/task.h"
+#endif
 
 #include "common.h"
 #include "armcpu.h"
@@ -113,7 +115,11 @@ void Desmume_InitOnce()
 
 int NDS_GetCPUCoreCount()
 {
+#ifdef MULTITHREADING
 	return getOnlineCores();
+#else
+	return 1;
+#endif
 }
 
 void NDS_SetupDefaultFirmware()

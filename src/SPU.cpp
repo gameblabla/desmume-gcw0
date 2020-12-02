@@ -1655,8 +1655,8 @@ void SPU_Emulate_core()
 	
 	needToMix = false;
 	
-	// Tocheck
-	//SPU_MixAudio(needToMix, SPU_core, spu_core_samples);
+	// Needed for some games like Pokemon Black to go past the titlescreen (anti-emulation check??) - Gameblabla
+	SPU_MixAudio(needToMix, SPU_core, spu_core_samples);
 	
 	if (soundProcessor == NULL)
 	{

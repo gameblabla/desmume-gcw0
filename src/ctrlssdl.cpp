@@ -285,6 +285,11 @@ void update_keypad(u16 keys)
 			input.G, input.F);
 	}
 	
+	
+#ifdef GKD350H
+	if ((keys>>3)&1 && (keys>>1)&1) sdl_quit = 1;
+#endif
+	
 	// Set real input
 	NDS_beginProcessingInput();
 	{
@@ -383,6 +388,7 @@ process_ctrls_event( SDL_Event& event, u16* keypad)
 {
 	int prevexec;
 	u16 key;
+	
 	if ( !do_process_joystick_events( keypad, &event))
 	{
 		switch (event.type)

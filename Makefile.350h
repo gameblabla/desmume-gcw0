@@ -1,0 +1,55 @@
+# define regarding OS, which compiler to use
+CXX = /opt/gcw0-toolchain-static/usr/bin/mipsel-linux-g++
+
+PRGNAME     = desmume.elf
+PROFILE		= APPLY
+HUGE_PAGES	= 0
+
+# change compilation / linking flag options
+CXXFLAGS		= -Ofast -fdata-sections -ffunction-sections -fsection-anchors -fno-builtin -mframe-header-opt -mno-fp-exceptions -mno-check-zero-division -fsingle-precision-constant -fno-common -march=mips32r2 -mtune=mips32r2 -flto -mno-abicalls -fno-PIC
+CXXFLAGS		+= $(INCLUDES) $(DEFINES) -fno-math-errno
+
+CXXFLAGS 		+= -DFASTBUILD -DHOST_LINUX=1 -I.  -I./src -D_GNU_SOURCE=1 -D_REENTRANT -DGKD350H
+CXXFLAGS		+= -Isrc -Isrc/cli -Isrc/addons -Isrc/utils -Isrc/utils/tinyxml -Isrc/utils/libfat -Isrc/utils/decrypt
+
+ifeq ($(PROFILE), YES)
+CXXFLAGS 		+= -fprofile-generate -fprofile-dir=/media/roms/nds_gcda
+else ifeq ($(PROFILE), APPLY)
+CXXFLAGS		+= -fprofile-use -fbranch-probabilities
+endif
+
+LDFLAGS     = -lc -lgcc -lSDL -lm -lasound -lstdc++ -Wl,-z,norelro -Wl,-O1,--sort-common,--as-needed,--gc-sections -flto -no-pie -s
+
+ifeq ($(HUGE_PAGES), 1)
+LDFLAGS		+= -Wl,-zcommon-page-size=2097152 -Wl,-zmax-page-size=2097152 -lhugetlbfs
+endif
+
+ifeq ($(PROFILE), YES)
+LDFLAGS 	+= -lgcov
+endif
+
+# Files to be compiled
+SRCDIR    = ./src ./src/cli ./src/addons ./src/filter ./src/metaspu ./src/utils ./src/utils/tinyxml ./src/utils/libfat ./src/utils/decrypt
+VPATH     = $(SRCDIR)
+SRC_C   = $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
+OBJ_C   = $(notdir $(patsubst %.cpp, %.o, $(SRC_C)))
+OBJS     = $(OBJ_C)
+
+all: $(PRGNAME)
+
+# Rules to make executable
+$(PRGNAME): $(OBJS)  
+	$(CXX) $(CXXFLAGS) -o $(PRGNAME) $^ $(LDFLAGS)
+ifeq ($(HUGE_PAGES), 1)
+	/opt/gcw0-toolchain/usr/bin/hugeedit --data --text $(PRGNAME)
+endif
+
+$(OBJ_C) : %.o : %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+clean:
+	rm -f $(PRGNAME) *.o
+
+pack	:
+		mv $(PRGNAME) ./opk/$(PRGNAME)
+		mksquashfs ./opk desmume.opk -all-root -noappend -no-exports -no-xattrs
