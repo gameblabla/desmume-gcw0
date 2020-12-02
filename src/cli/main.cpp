@@ -273,7 +273,7 @@ int main(int argc, char ** argv) {
 
 	load_default_config(cli_kb_cfg);
 	
-	loadstate_slot(0);
+	loadstate_slot(1);
 
 	/*if(my_config.load_slot != -1){
 		loadstate_slot(my_config.load_slot);
@@ -333,6 +333,8 @@ int main(int argc, char ** argv) {
 #endif
 
 	}
+	
+	savestate_slot(1);
 
 	/* Unload joystick */
 	uninit_joy();
