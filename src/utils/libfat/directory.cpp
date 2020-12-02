@@ -115,7 +115,7 @@ static int _FAT_directory_lfnLength (const char* name) {
 	}
 	// Make sure the name doesn't contain any control codes or codes not representable in UCS-2
 	for (i = 0; i < nameLength; i++) {
-		if (name[i] < 0x20 || name[i] >= ABOVE_UCS_RANGE) {
+		if (name[i] < 0x20) {
 			return -1;
 		}
 	}
@@ -134,7 +134,7 @@ Convert a multibyte encoded string into a NUL-terminated UCS-2 string, storing a
 return number of characters stored
 */
 static size_t _FAT_directory_mbstoucs2 (ucs2_t* dst, const char* src, size_t len) {
-	mbstate_t ps = {0};
+	mbstate_t ps = {0, 0};
 	wchar_t tempChar;
 	int bytes;
 	size_t count = 0;
@@ -162,7 +162,7 @@ Convert a UCS-2 string into a NUL-terminated multibyte string, storing at most l
 return number of chars stored, or (size_t)-1 on error
 */
 static size_t _FAT_directory_ucs2tombs (char* dst, const ucs2_t* src, size_t len) {
-	mbstate_t ps = {0};
+	mbstate_t ps = {0, 0};
 	size_t count = 0;
 	int bytes;
 	char* buff = (char*)alloca(MB_CUR_MAX);
@@ -193,8 +193,8 @@ Case-independent comparison of two multibyte encoded strings
 */
 static int _FAT_directory_mbsncasecmp (const char* s1, const char* s2, size_t len1) {
 	wchar_t wc1, wc2;
-	mbstate_t ps1 = {0};
-	mbstate_t ps2 = {0};
+	mbstate_t ps1 = {0, 0};
+	mbstate_t ps2 = {0, 0};
 	size_t b1 = 0;
 	size_t b2 = 0;
 	
@@ -800,7 +800,7 @@ static int _FAT_directory_createAlias (char* alias, const char* lfn) {
 	int aliasPos = 0;
 	wchar_t lfnChar;
 	int oemChar;
-	mbstate_t ps = {0};
+	mbstate_t ps = {0, 0};
 	int bytesUsed = 0;
 	const char* lfnExt;
 	int aliasExtLen;
