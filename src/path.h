@@ -28,8 +28,6 @@
 		#include "windows/winutil.h"
 		#include "windows/resource.h"
 	#endif
-#elif !defined(DESMUME_COCOA)
-	#include <glib.h>
 #endif /* HOST_WINDOWS */
 
 #include "time.h"
@@ -156,10 +154,10 @@ public:
 
 		strncpy(pathToModule, pathStr.c_str(), MAX_PATH);
 #else
-		char *cwd = g_build_filename(g_get_user_config_dir(), "desmume", NULL);
+		/*char *cwd = g_build_filename(g_get_user_config_dir(), "desmume", NULL);
 		g_mkdir_with_parents(cwd, 0755);
 		strncpy(pathToModule, cwd, MAX_PATH);
-		g_free(cwd);
+		g_free(cwd);*/
 #endif
 	}
 

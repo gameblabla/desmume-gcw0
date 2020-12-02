@@ -1,0 +1,7 @@
+*.dsv
+*.nds
+*.rom
+*.o
+*.gcda
+*.elf
+*.a

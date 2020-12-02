@@ -3291,7 +3291,7 @@ void FASTCALL _MMU_ARM9_write08(u32 adr, u8 val)
 
 		switch(adr)
 		{
-			case REG_SQRTCNT: printf("ERROR 8bit SQRTCNT WRITE\n"); return;
+			/*case REG_SQRTCNT: printf("ERROR 8bit SQRTCNT WRITE\n"); return;
 			case REG_SQRTCNT+1: printf("ERROR 8bit SQRTCNT1 WRITE\n"); return;
 			case REG_SQRTCNT+2: printf("ERROR 8bit SQRTCNT2 WRITE\n"); return;
 			case REG_SQRTCNT+3: printf("ERROR 8bit SQRTCNT3 WRITE\n"); return;
@@ -3302,7 +3302,7 @@ void FASTCALL _MMU_ARM9_write08(u32 adr, u8 val)
 			case REG_DIVCNT+2: printf("ERROR 8bit DIVCNT+2 WRITE\n"); return;
 			case REG_DIVCNT+3: printf("ERROR 8bit DIVCNT+3 WRITE\n"); return;
 #endif
-
+*/
 			//fog table: only write bottom 7 bits
 			case eng_3D_FOG_TABLE+0x00: case eng_3D_FOG_TABLE+0x01: case eng_3D_FOG_TABLE+0x02: case eng_3D_FOG_TABLE+0x03: 
 			case eng_3D_FOG_TABLE+0x04: case eng_3D_FOG_TABLE+0x05: case eng_3D_FOG_TABLE+0x06: case eng_3D_FOG_TABLE+0x07: 
@@ -3316,13 +3316,13 @@ void FASTCALL _MMU_ARM9_write08(u32 adr, u8 val)
 				break;
 
 			//ensata putchar port
-			case 0x04FFF000:
+			/*case 0x04FFF000:
 				if(nds.ensataEmulation)
 				{
 					printf("%c",val);
 					fflush(stdout);
 				}
-				break;
+				break;*/
 
 			case eng_3D_GXSTAT:
 				MMU_new.gxstat.write(8,adr,val);
@@ -3646,6 +3646,7 @@ void FASTCALL _MMU_ARM9_write16(u32 adr, u16 val)
 				MMU_new.div.write16(val);
 				execdiv();
 				return;
+				/*
 #if 1
 			case REG_DIVNUMER:
 			case REG_DIVNUMER+2:
@@ -3658,6 +3659,7 @@ void FASTCALL _MMU_ARM9_write16(u32 adr, u16 val)
 				printf("DIV: 16 write DENOM %08X. PLEASE REPORT! \n", val);
 				break;
 #endif
+* */
 			case REG_SQRTCNT:
 				MMU_new.sqrt.write16(val);
 				execsqrt();

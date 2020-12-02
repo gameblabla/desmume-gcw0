@@ -19,14 +19,10 @@
 #ifndef CTRLSSDL_H
 #define CTRLSSDL_H
 
-#ifdef HAVE_GL_GL_H
-#include <GL/gl.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <SDL.h>
+#include <SDL/SDL.h>
 #include "MMU.h"
 
 #include "types.h"
@@ -110,8 +106,7 @@ u16 get_keypad( void);
 u16 lookup_key (u16 keyval);
 u16 lookup_joy_key (u16 keyval);
 void
-process_ctrls_event( SDL_Event& event,
-                      struct ctrls_event_config *cfg);
+process_ctrls_event( SDL_Event& event, u16* keypad);
 
 void
 process_joystick_events( u16 *keypad);

@@ -19,18 +19,24 @@
 #include "ctrlssdl.h"
 #include "saves.h"
 #include "SPU.h"
-#include "commandline.h"
 #include "NDSSystem.h"
 #ifdef FAKE_MIC
 #include "mic.h"
 #endif
+
+#define BIT(n) (1U<<(n))
 
 u16 keyboard_cfg[NB_KEYS];
 u16 joypad_cfg[NB_KEYS];
 u16 nbr_joy;
 mouse_status mouse;
 
+extern float nds_screen_size_ratio;
+extern float nds_screen_size_ratio;
+
 static SDL_Joystick **open_joysticks = NULL;
+
+extern uint32_t sdl_quit;
 
 /* Keypad key names */
 const char *key_names[NB_KEYS] =
@@ -89,181 +95,134 @@ static void set_joy_keys(const u16 joyCfg[])
 
 /* Initialize joysticks */
 BOOL init_joy( void) {
-  int i;
-  BOOL joy_init_good = TRUE;
+	int i;
+	BOOL joy_init_good = TRUE;
 
-  //user asked for no joystick
-  if(_commandline_linux_nojoy) {
-	  printf("skipping joystick init\n");
-	  return TRUE;
-  }
+	if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
+	{
+		fprintf(stderr, "Error trying to initialize joystick support: %s\n",
+		SDL_GetError());
+		return FALSE;
+	}
 
-  set_joy_keys(default_joypad_cfg);
+	nbr_joy = SDL_NumJoysticks();
 
-  if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
-    {
-      fprintf(stderr, "Error trying to initialize joystick support: %s\n",
-              SDL_GetError());
-      return FALSE;
-    }
+	if ( nbr_joy > 0)
+	{
+		printf("Found %d joysticks\n", nbr_joy);
+		open_joysticks = (SDL_Joystick**)calloc( sizeof ( SDL_Joystick *), nbr_joy);
 
-  nbr_joy = SDL_NumJoysticks();
-
-  if ( nbr_joy > 0) {
-    printf("Found %d joysticks\n", nbr_joy);
-    open_joysticks =
-      (SDL_Joystick**)calloc( sizeof ( SDL_Joystick *), nbr_joy);
-
-    if ( open_joysticks != NULL) {
-      for (i = 0; i < nbr_joy; i++)
-        {
-          SDL_Joystick * joy = SDL_JoystickOpen(i);
-          printf("Joystick %d %s\n", i, SDL_JoystickName(i));
-          printf("Axes: %d\n", SDL_JoystickNumAxes(joy));
-          printf("Buttons: %d\n", SDL_JoystickNumButtons(joy));
-          printf("Trackballs: %d\n", SDL_JoystickNumBalls(joy));
-          printf("Hats: %d\n\n", SDL_JoystickNumHats(joy));
-        }
-    }
-    else {
-      joy_init_good = FALSE;
-    }
-  }
-
-  return joy_init_good;
+		if ( open_joysticks != NULL)
+		{
+			for (i = 0; i < nbr_joy; i++)
+			{
+			SDL_Joystick * joy = SDL_JoystickOpen(i);
+			printf("Joystick %d %s\n", i, SDL_JoystickName(i));
+			printf("Axes: %d\n", SDL_JoystickNumAxes(joy));
+			printf("Buttons: %d\n", SDL_JoystickNumButtons(joy));
+			printf("Trackballs: %d\n", SDL_JoystickNumBalls(joy));
+			printf("Hats: %d\n\n", SDL_JoystickNumHats(joy));
+			}
+		}
+		else
+		{
+			joy_init_good = FALSE;
+		}
+	}
+	return joy_init_good;
 }
 
 /* Unload joysticks */
 void uninit_joy( void)
 {
-  int i;
+	int i;
 
-  if ( open_joysticks != NULL) {
-    for (i = 0; i < SDL_NumJoysticks(); i++) {
-      SDL_JoystickClose( open_joysticks[i]);
-    }
-
-    free( open_joysticks);
-  }
-
-  open_joysticks = NULL;
-  SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+	if ( open_joysticks != NULL)
+	{
+		for (i = 0; i < SDL_NumJoysticks(); i++)
+		{
+			SDL_JoystickClose( open_joysticks[i]);
+		}
+		free( open_joysticks);
+	}
+	open_joysticks = NULL;
+	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
 
 /* Return keypad vector with given key set to 1 */
-u16 lookup_joy_key (u16 keyval) {
-  int i;
-  u16 Key = 0;
+u16 lookup_joy_key (u16 keyval)
+{
+	int i;
+	u16 Key = 0;
 
-  for(i = 0; i < NB_KEYS; i++)
-    if(keyval == joypad_cfg[i]) {
-      Key = KEYMASK_(i);
-      break;
+	for(i = 0; i < NB_KEYS; i++)
+    if(keyval == joypad_cfg[i])
+    {
+		Key = KEYMASK_(i);
+		break;
     }
-
-  return Key;
+	return Key;
 }
 
 /* Return keypad vector with given key set to 1 */
-u16 lookup_key (u16 keyval) {
-  int i;
-  u16 Key = 0;
+u16 lookup_key (u16 keyval)
+{
+	int i;
+	u16 Key = 0;
 
-  for(i = 0; i < NB_KEYS; i++)
-    if(keyval == keyboard_cfg[i]) {
-      Key = KEYMASK_(i);
-      break;
-    }
+	for(i = 0; i < NB_KEYS; i++)
+		if(keyval == keyboard_cfg[i]) {
+		Key = KEYMASK_(i);
+		break;
+	}
 
-  return Key;
+	return Key;
 }
 
 /* Get pressed joystick key */
 u16 get_joy_key(int index) {
-  BOOL done = FALSE;
-  SDL_Event event;
-  u16 key = joypad_cfg[index];
+	BOOL done = FALSE;
+	SDL_Event event;
+	u16 key = joypad_cfg[index];
 
-  /* Enable joystick events if needed */
-  if( SDL_JoystickEventState(SDL_QUERY) == SDL_IGNORE )
-    SDL_JoystickEventState(SDL_ENABLE);
+	/* Enable joystick events if needed */
+	if( SDL_JoystickEventState(SDL_QUERY) == SDL_IGNORE )
+		SDL_JoystickEventState(SDL_ENABLE);
 
-  while(SDL_WaitEvent(&event) && !done)
+	while(SDL_WaitEvent(&event) && !done)
     {
       switch(event.type)
         {
-        case SDL_JOYBUTTONDOWN:
-          printf( "Device: %d; Button: %d\n", event.jbutton.which, event.jbutton.button );
-          key = ((event.jbutton.which & 15) << 12) | JOY_BUTTON << 8 | (event.jbutton.button & 255);
-          done = TRUE;
-          break;
         case SDL_JOYAXISMOTION:
-          /* Dead zone of 50% */
-          if( (abs(event.jaxis.value) >> 14) != 0 )
-            {
-              key = ((event.jaxis.which & 15) << 12) | JOY_AXIS << 8 | ((event.jaxis.axis & 127) << 1);
-              if (event.jaxis.value > 0) {
-                printf( "Device: %d; Axis: %d (+)\n", event.jaxis.which, event.jaxis.axis );
-                key |= 1;
-              }
-              else
-                printf( "Device: %d; Axis: %d (-)\n", event.jaxis.which, event.jaxis.axis );
-              done = TRUE;
-            }
-          break;
-        case SDL_JOYHATMOTION:
-          /* Diagonal positions will be treated as two separate keys being activated, rather than a single diagonal key. */
-          /* JOY_HAT_* are sequential integers, rather than a bitmask */
-          if (event.jhat.value != SDL_HAT_CENTERED) {
-            key = ((event.jhat.which & 15) << 12) | JOY_HAT << 8 | ((event.jhat.hat & 63) << 2);
-            /* Can't just use a switch here because SDL_HAT_* make up a bitmask. We only want one of these when assigning keys. */
-            if ((event.jhat.value & SDL_HAT_UP) != 0) {
-              key |= JOY_HAT_UP;
-              printf( "Device: %d; Hat: %d (Up)\n", event.jhat.which, event.jhat.hat );
-            }
-            else if ((event.jhat.value & SDL_HAT_RIGHT) != 0) {
-              key |= JOY_HAT_RIGHT;
-              printf( "Device: %d; Hat: %d (Right)\n", event.jhat.which, event.jhat.hat );
-            }
-            else if ((event.jhat.value & SDL_HAT_DOWN) != 0) {
-              key |= JOY_HAT_DOWN;
-              printf( "Device: %d; Hat: %d (Down)\n", event.jhat.which, event.jhat.hat );
-            }
-            else if ((event.jhat.value & SDL_HAT_LEFT) != 0) {
-              key |= JOY_HAT_LEFT;
-              printf( "Device: %d; Hat: %d (Left)\n", event.jhat.which, event.jhat.hat );
-            }
-            done = TRUE;
-          }
           break;
         }
     }
 
-  if( SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE )
-    SDL_JoystickEventState(SDL_IGNORE);
+	if( SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE )
+		SDL_JoystickEventState(SDL_IGNORE);
 
-  return key;
+	return key;
 }
 
 /* Get and set a new joystick key */
 u16 get_set_joy_key(int index) {
-  joypad_cfg[index] = get_joy_key(index);
+	joypad_cfg[index] = get_joy_key(index);
 
-  return joypad_cfg[index];
+	return joypad_cfg[index];
 }
 
 static signed long
 screen_to_touch_range( signed long scr, float size_ratio) {
-  return (signed long)((float)scr * size_ratio);
+	return (signed long)((float)scr * size_ratio);
 }
 
 /* Set mouse coordinates */
 static void set_mouse_coord(signed long x,signed long y)
 {
-  if(x<0) x = 0; else if(x>255) x = 255;
-  if(y<0) y = 0; else if(y>192) y = 192;
-  mouse.x = x;
-  mouse.y = y;
+	if(x<0) x = 0; else if(x>255) x = 255;
+	if(y<0) y = 0; else if(y>192) y = 192;
+	mouse.x = x;
+	mouse.y = y;
 }
 
 // Adapted from Windows port
@@ -391,50 +350,6 @@ do_process_joystick_events( u16 *keypad, SDL_Event *event) {
             RM_KEY( *keypad, key_o );
         }
       break;
-
-    case SDL_JOYHATMOTION:
-      /* Diagonal positions will be treated as two separate keys being activated, rather than a single diagonal key. */
-      /* JOY_HAT_* are sequential integers, rather than a bitmask */
-      key_code = ((event->jhat.which & 15) << 12) | JOY_HAT << 8 | ((event->jhat.hat & 63) << 2);
-      key_u = lookup_joy_key( key_code | JOY_HAT_UP );
-      key_r = lookup_joy_key( key_code | JOY_HAT_RIGHT );
-      key_d = lookup_joy_key( key_code | JOY_HAT_DOWN );
-      key_l = lookup_joy_key( key_code | JOY_HAT_LEFT );
-      if ((key_u != 0) && ((event->jhat.value & SDL_HAT_UP) != 0))
-        ADD_KEY( *keypad, key_u );
-      else if (key_u != 0)
-        RM_KEY( *keypad, key_u );
-      if ((key_r != 0) && ((event->jhat.value & SDL_HAT_RIGHT) != 0))
-        ADD_KEY( *keypad, key_r );
-      else if (key_r != 0)
-        RM_KEY( *keypad, key_r );
-      if ((key_d != 0) && ((event->jhat.value & SDL_HAT_DOWN) != 0))
-        ADD_KEY( *keypad, key_d );
-      else if (key_d != 0)
-        RM_KEY( *keypad, key_d );
-      if ((key_l != 0) && ((event->jhat.value & SDL_HAT_LEFT) != 0))
-        ADD_KEY( *keypad, key_l );
-      else if (key_l != 0)
-        RM_KEY( *keypad, key_l );
-      break;
-
-      /* Joystick button pressed */
-      /* FIXME: Add support for BOOST */
-    case SDL_JOYBUTTONDOWN:
-      key_code = ((event->jbutton.which & 15) << 12) | JOY_BUTTON << 8 | (event->jbutton.button & 255);
-      key = lookup_joy_key( key_code );
-      if (key != 0)
-        ADD_KEY( *keypad, key );
-      break;
-
-      /* Joystick button released */
-    case SDL_JOYBUTTONUP:
-      key_code = ((event->jbutton.which & 15) << 12) | JOY_BUTTON << 8 | (event->jbutton.button & 255);
-      key = lookup_joy_key( key_code );
-      if (key != 0)
-        RM_KEY( *keypad, key );
-      break;
-
     default:
       processed = 0;
       break;
@@ -464,129 +379,87 @@ process_joystick_events( u16 *keypad) {
 u16 shift_pressed;
 
 void
-process_ctrls_event( SDL_Event& event,
-                      struct ctrls_event_config *cfg)
+process_ctrls_event( SDL_Event& event, u16* keypad)
 {
-  u16 key;
-  if ( !do_process_joystick_events( &cfg->keypad, &event)) {
-    switch (event.type)
-    {
-      case SDL_VIDEORESIZE:
-        cfg->resize_cb( event.resize.w, event.resize.h, cfg->screen_texture);
-        break;
+	int prevexec;
+	u16 key;
+	if ( !do_process_joystick_events( keypad, &event))
+	{
+		switch (event.type)
+		{
+				case SDL_KEYDOWN:
+				switch(event.key.keysym.sym)
+				{
+					case SDLK_PAGEUP:
+						
+						prevexec = execute;
+						execute = FALSE;
+						SPU_Pause(1);
+						loadstate_slot(0);
+						execute = prevexec;
+						SPU_Pause(!execute);
+					break;
+					case SDLK_PAGEDOWN:
+						int prevexec;
+						prevexec = execute;
+						execute = FALSE;
+						SPU_Pause(1);
+						savestate_slot(0);
+						execute = prevexec;
+						SPU_Pause(!execute);
+					break;
+					case SDLK_KP_DIVIDE:
+						mouse.down = TRUE;
+					break;
+					default:
+						key = lookup_key(event.key.keysym.sym);
+						ADD_KEY( *keypad, key );
+						break;
+				}
+				break;
+				case SDL_KEYUP:
+				switch(event.key.keysym.sym)
+				{
+					case SDLK_HOME:
+						sdl_quit = 1;
+					break;
+					case SDLK_KP_DIVIDE:
+						mouse.down = FALSE;
+					break;
+					default:
+						key = lookup_key(event.key.keysym.sym);
+						RM_KEY( *keypad, key );
+					break;
+				}
+				break;
+				case SDL_MOUSEBUTTONDOWN:
+					if(event.button.button==1)
+						mouse.down = TRUE;                    
+				case SDL_MOUSEMOTION:
+					if(!mouse.down)
+						break;
+					else {
+					signed long scaled_x =
+						screen_to_touch_range( event.button.x,
+											 nds_screen_size_ratio);
+					signed long scaled_y =
+						screen_to_touch_range( event.button.y,
+										nds_screen_size_ratio);
 
-      case SDL_ACTIVEEVENT:
-        if (cfg->auto_pause && (event.active.state & SDL_APPINPUTFOCUS )) {
-          if (event.active.gain) {
-            cfg->focused = 1;
-            SPU_Pause(0);
-          } else {
-            cfg->focused = 0;
-            SPU_Pause(1);
-          }
-        }
-        break;
-
-      case SDL_KEYDOWN:
-        switch(event.key.keysym.sym){
-            case SDLK_LSHIFT:
-                shift_pressed |= 1;
-                break;
-            case SDLK_RSHIFT:
-                shift_pressed |= 2;
-                break;
-            default:
-                key = lookup_key(event.key.keysym.sym);
-                ADD_KEY( cfg->keypad, key );
-                break;
-        }
-        break;
-
-      case SDL_KEYUP:
-        switch(event.key.keysym.sym){
-            case SDLK_ESCAPE:
-                cfg->sdl_quit = 1;
-                break;
-
-#ifdef FAKE_MIC
-            case SDLK_m:
-                cfg->fake_mic = !cfg->fake_mic;
-                Mic_DoNoise(cfg->fake_mic);
-                break;
-#endif
-
-            case SDLK_o:
-                cfg->boost = !cfg->boost;
-                break;
-
-            case SDLK_LSHIFT:
-                shift_pressed &= ~1;
-                break;
-            case SDLK_RSHIFT:
-                shift_pressed &= ~2;
-                break;
-
-            case SDLK_F1:
-            case SDLK_F2:
-            case SDLK_F3:
-            case SDLK_F4:
-            case SDLK_F5:
-            case SDLK_F6:
-            case SDLK_F7:
-            case SDLK_F8:
-            case SDLK_F9:
-            case SDLK_F10:
-                int prevexec;
-                prevexec = execute;
-                execute = FALSE;
-                SPU_Pause(1);
-                if(!shift_pressed){
-                    loadstate_slot(event.key.keysym.sym - SDLK_F1 + 1);
-                }else{
-                    savestate_slot(event.key.keysym.sym - SDLK_F1 + 1);
-                }
-                execute = prevexec;
-                SPU_Pause(!execute);
-                break;
-            default:
-                key = lookup_key(event.key.keysym.sym);
-                RM_KEY( cfg->keypad, key );
-                break;
-        }
-        break;
-
-      case SDL_MOUSEBUTTONDOWN:
-        if(event.button.button==1)
-          mouse.down = TRUE;
-                                            
-      case SDL_MOUSEMOTION:
-        if(!mouse.down)
-          break;
-        else {
-          signed long scaled_x =
-            screen_to_touch_range( event.button.x,
-                                     cfg->nds_screen_size_ratio);
-          signed long scaled_y =
-            screen_to_touch_range( event.button.y,
-                                     cfg->nds_screen_size_ratio);
-
-          if( scaled_y >= 192)
-            set_mouse_coord( scaled_x, scaled_y - 192);
-        }
-        break;
-
-      case SDL_MOUSEBUTTONUP:
-        if(mouse.down) mouse.click = TRUE;
-        mouse.down = FALSE;
-        break;
-
-      case SDL_QUIT:
-        cfg->sdl_quit = 1;
-        break;
-
-      default:
-        break;
-    }
-  }
+					if( scaled_y >= 192)
+						set_mouse_coord( scaled_x, scaled_y - 192);
+				}
+				break;
+				case SDL_MOUSEBUTTONUP:
+					if(mouse.down) mouse.click = TRUE;
+					mouse.down = FALSE;
+				break;
+				case SDL_QUIT:
+					sdl_quit = 1;
+				break;
+				default:
+				break;
+		}
+	}
 }
 
