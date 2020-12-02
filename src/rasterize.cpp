@@ -340,10 +340,8 @@ class RasterizerUnit
 public:
 
 	int SLI_MASK, SLI_VALUE;
-	bool _debug_thisPoly;
 
 	RasterizerUnit()
-		: _debug_thisPoly(false)
 	{
 	}
 
@@ -817,60 +815,6 @@ public:
 			const int y = left->Y;
 			left->Step();
 			right->Step();
-
-			if(!RENDERER && _debug_thisPoly)
-			{
-				//debug drawing
-				bool top = (horizontal&&first);
-				bool bottom = (!Height&&horizontal);
-				if(Height || top || bottom)
-				{
-					if(draw)
-					{
-						int nxl = left->X;
-						int nxr = right->X;
-						if(top) {
-							int xs = min(xl,xr);
-							int xe = max(xl,xr);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
-							}
-						} else if(bottom) {
-							int xs = min(xl,xr);
-							int xe = max(xl,xr);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
-							}
-						} else
-						{
-							int xs = min(xl,nxl);
-							int xe = max(xl,nxl);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
-							}
-							xs = min(xr,nxr);
-							xe = max(xr,nxr);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
-							}
-						}
-
-					}
-				}
-				first = false;
-			}
 		}
 	}
 
@@ -992,7 +936,6 @@ public:
 		bool first=true;
 		for(int i=0;i<engine->clippedPolyCounter;i++)
 		{
-			if(!RENDERER) _debug_thisPoly = (i==engine->_debug_drawClippedUserPoly);
 			if(!engine->polyVisible[i]) continue;
 			polynum = i;
 
