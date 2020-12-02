@@ -621,9 +621,9 @@ int NDS_LoadROM(const char *filename, const char *physicalName, const char *logi
 	gameInfo.populate();
 
 
-	if (CommonSettings.loadToMemory)
+	/*if (CommonSettings.loadToMemory)
 		gameInfo.crc = crc32(0, (u8*)gameInfo.romdata, gameInfo.romsize);
-	else
+	else*/
 		gameInfo.crc = 0;
 
 	gameInfo.chipID  = 0xC2;														// The Manufacturer ID is defined by JEDEC (C2h = Macronix)

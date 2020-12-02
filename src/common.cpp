@@ -420,6 +420,7 @@ static int WritePNGChunk(FILE *fp, uint32 size, const char *type, const uint8 *d
 	return 1;
 }
 
+/*
 int NDS_WritePNG(const char *fname, u8 *data)
 {
 	int x, y;
@@ -517,7 +518,7 @@ PNGerr:
 	if(pp)
 		fclose(pp);
 	return(0);
-}
+}*/
 
 typedef struct
 {

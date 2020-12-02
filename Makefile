@@ -5,12 +5,12 @@ CXX = g++
 LD  = gcc
 
 # change compilation / linking flag options
-CC_OPTS		= -O0 -g3
+CC_OPTS		= -O2 -g3
 CFLAGS		= $(CC_OPTS)
 
-CFLAGS 		+= -DFASTBUILD -DHAVE_LIBZ=1 -DHOST_LINUX=1 -I.  -I./src -D_GNU_SOURCE=1 -D_REENTRANT
+CFLAGS 		+= -DFASTBUILD -DHOST_LINUX=1 -I.  -I./src -D_GNU_SOURCE=1 -D_REENTRANT
 CFLAGS      += -Isrc -Isrc/cli -Isrc/addons -Isrc/utils -Isrc/utils/tinyxml -Isrc/utils/libfat -Isrc/utils/decrypt
-LDFLAGS     = -lSDL -lm -lz -lasound -lstdc++ -pthread
+LDFLAGS     = -lSDL -lm -lasound -lstdc++ -pthread
 
 # Files to be compiled
 SRCDIR    = ./src ./src/cli ./src/addons ./src/filter ./src/utils ./src/utils/tinyxml ./src/utils/libfat ./src/utils/decrypt

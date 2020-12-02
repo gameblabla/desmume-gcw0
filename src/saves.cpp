@@ -856,6 +856,12 @@ static void savestate_WriteChunk(EMUFILE* os, int type, void (*saveproc)(EMUFILE
 
 static void writechunks(EMUFILE* os);
 
+
+#ifndef HAVE_LIBZ
+#define Z_NO_COMPRESSION 0
+#define Z_OK 1
+#endif
+
 bool savestate_save(EMUFILE* outstream, int compressionLevel)
 {
 #ifdef HAVE_JIT 
@@ -889,6 +895,7 @@ bool savestate_save(EMUFILE* outstream, int compressionLevel)
 
 	//compress the data
 	int error = Z_OK;
+	#ifdef HAVE_ZLIB
 	if(compressionLevel != Z_NO_COMPRESSION)
 	{
 		cbuf = ms.buf();
@@ -902,6 +909,7 @@ bool savestate_save(EMUFILE* outstream, int compressionLevel)
 		error = compress2(cbuf,&comprlen2,ms.buf(),len,compressionLevel);
 		comprlen = (u32)comprlen2;
 	}
+	#endif
 
 	//dump the header
 	outstream->fseek(0,SEEK_SET);
@@ -930,6 +938,7 @@ bool savestate_save (const char *file_name)
 	if(!savestate_save(&ms, 0))
 #endif
 		return false;
+
 	FILE* file = fopen(file_name,"wb");
 	if(file)
 	{
@@ -1190,8 +1199,10 @@ bool savestate_load(const char *file_name)
 	return savestate_load(&f);
 }
 
+/*
 static std::stack<EMUFILE_MEMORY*> rewindFreeList;
 static std::vector<EMUFILE_MEMORY*> rewindbuffer;
+
 
 int rewindstates = 16;
 int rewindinterval = 4;
@@ -1212,9 +1223,13 @@ void rewindsave () {
 		ms = new EMUFILE_MEMORY(1024*1024*12);
 	}
 
+#ifdef HAVE_LIBZ
 	if(!savestate_save(ms, Z_NO_COMPRESSION))
 		return;
-
+#else
+	if(!savestate_save(ms))
+		return;
+#endif
 	rewindbuffer.push_back(ms);
 	
 	if((int)rewindbuffer.size() > rewindstates) {
@@ -1251,4 +1266,4 @@ void dorewind()
 		rewindbuffer.pop_back();
 	}
 
-}
+}*/

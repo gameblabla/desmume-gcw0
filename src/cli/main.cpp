@@ -111,7 +111,7 @@ const u16 cli_kb_cfg[NB_KEYS] =
     SDLK_z, // Lid
   };
 
-uint32_t frameskip = 3;
+uint32_t frameskip = 9;
 uint32_t sdl_quit = 0;
 
 /* Preferably this should draw directly to the surface.
