@@ -53,9 +53,6 @@ static inline s8 read_s8(u32 addr) { return (s8)_MMU_read08<ARMCPU_ARM7,MMU_AT_D
 	#define FORCEINLINE
 //#endif
 
-//static ISynchronizingAudioBuffer* synchronizer = metaspu_construct(ESynchMethod_Z);
-static ISynchronizingAudioBuffer* synchronizer = metaspu_construct(ESynchMethod_N);
-
 SPU_struct *SPU_core = 0;
 SPU_struct *SPU_user = 0;
 int SPU_currentCoreNum = SNDCORE_DUMMY;
@@ -63,9 +60,6 @@ static int volume = 100;
 
 
 static size_t buffersize = 0;
-static ESynchMode synchmode = ESynchMode_DualSynchAsynch;
-static ESynchMethod synchmethod = ESynchMethod_N;
-
 static int SNDCoreId=-1;
 static SoundInterface_struct *SNDCore=NULL;
 extern SoundInterface_struct *SNDCoreList[];
@@ -158,10 +152,6 @@ int SPU_ChangeSoundCore(int coreid, int buffersize)
 
 	SNDCoreId = coreid;
 
-	//If the user picked the dummy core, disable the user spu
-	if(SNDCore == &SNDDummy)
-		return 0;
-
 	//If the core wasnt found in the list for some reason, disable the user spu
 	if (SNDCore == NULL)
 		return -1;
@@ -175,7 +165,7 @@ int SPU_ChangeSoundCore(int coreid, int buffersize)
 
 	SNDCore->SetVolume(volume);
 
-	SPU_SetSynchMode(synchmode,synchmethod);
+	SPU_SetSynchMode();
 
 	return 0;
 }
@@ -222,7 +212,7 @@ int SPU_Init(int coreid, int buffersize)
 		}
 	}
 
-	SPU_SetSynchMode(CommonSettings.SPU_sync_mode, CommonSettings.SPU_sync_method);
+	SPU_SetSynchMode();
 
 	return SPU_ChangeSoundCore(coreid, buffersize);
 }
@@ -246,26 +236,13 @@ void SPU_CloneUser()
 }
 
 
-void SPU_SetSynchMode(int mode, int method)
+void SPU_SetSynchMode()
 {
-	synchmode = (ESynchMode)mode;
-	if(synchmethod != (ESynchMethod)method)
-	{
-		synchmethod = (ESynchMethod)method;
-		delete synchronizer;
-		//grr does this need to be locked? spu might need a lock method
-		  // or maybe not, maybe the platform-specific code that calls this function can deal with it.
-		synchronizer = metaspu_construct(synchmethod);
-	}
-
 	delete SPU_user;
 	SPU_user = NULL;
 		
-	if(synchmode == ESynchMode_DualSynchAsynch)
-	{
-		SPU_user = new SPU_struct(buffersize);
-		SPU_CloneUser();
-	}
+	SPU_user = new SPU_struct(buffersize);
+	SPU_CloneUser();
 }
 
 void SPU_ClearOutputBuffer()
@@ -1621,30 +1598,14 @@ void SPU_Emulate_core()
 	spu_core_samples = (int)(samples);
 	samples -= spu_core_samples;
 	
-	// We don't need to mix audio for Dual Synch/Asynch mode since we do this
-	// later in SPU_Emulate_user(). Disable mixing here to speed up processing.
-	// However, recording still needs to mix the audio, so make sure we're also
-	// not recording before we disable mixing.
-	if ( synchmode == ESynchMode_DualSynchAsynch &&
-		!(driver->AVI_IsRecording() || driver->WAV_IsRecording()) )
-	{
-		needToMix = false;
-	}
+	needToMix = false;
 	
-	SPU_MixAudio(needToMix, SPU_core, spu_core_samples);
+	// Tocheck
+	//SPU_MixAudio(needToMix, SPU_core, spu_core_samples);
 	
 	if (soundProcessor == NULL)
 	{
 		return;
-	}
-	
-	if (soundProcessor->FetchSamples != NULL)
-	{
-		soundProcessor->FetchSamples(SPU_core->outbuf, spu_core_samples, synchmode, synchronizer);
-	}
-	else
-	{
-		SPU_DefaultFetchSamples(SPU_core->outbuf, spu_core_samples, synchmode, synchronizer);
 	}
 }
 
@@ -1683,222 +1644,23 @@ void SPU_Emulate_user(bool mix)
 		postProcessBuffer = (s16 *)realloc(postProcessBuffer, postProcessBufferSize);
 	}
 	
-	if (soundProcessor->PostProcessSamples != NULL)
-	{
-		processedSampleCount = soundProcessor->PostProcessSamples(postProcessBuffer, freeSampleCount, synchmode, synchronizer);
-	}
-	else
-	{
-		processedSampleCount = SPU_DefaultPostProcessSamples(postProcessBuffer, freeSampleCount, synchmode, synchronizer);
-	}
+	processedSampleCount = SPU_DefaultPostProcessSamples(postProcessBuffer, freeSampleCount);
+
 	
 	soundProcessor->UpdateAudio(postProcessBuffer, processedSampleCount);
-	WAV_WavSoundUpdate(postProcessBuffer, processedSampleCount, WAVMODE_USER);
 }
 
-void SPU_DefaultFetchSamples(s16 *sampleBuffer, size_t sampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer)
-{
-	if (synchMode == ESynchMode_Synchronous)
-	{
-		theSynchronizer->enqueue_samples(sampleBuffer, sampleCount);
-	}
-}
 
-size_t SPU_DefaultPostProcessSamples(s16 *postProcessBuffer, size_t requestedSampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer)
+size_t SPU_DefaultPostProcessSamples(s16 *postProcessBuffer, size_t requestedSampleCount)
 {
 	size_t processedSampleCount = 0;
 	
-	switch (synchMode)
-	{
-		case ESynchMode_DualSynchAsynch:
-			if(SPU_user != NULL)
-			{
-				SPU_MixAudio(true, SPU_user, requestedSampleCount);
-				memcpy(postProcessBuffer, SPU_user->outbuf, requestedSampleCount * 2 * sizeof(s16));
-				processedSampleCount = requestedSampleCount;
-			}
-			break;
-			
-		case ESynchMode_Synchronous:
-			processedSampleCount = theSynchronizer->output_samples(postProcessBuffer, requestedSampleCount);
-			break;
-			
-		default:
-			break;
-	}
+	SPU_MixAudio(true, SPU_user, requestedSampleCount);
+	memcpy(postProcessBuffer, SPU_user->outbuf, requestedSampleCount * 2 * sizeof(s16));
+	processedSampleCount = requestedSampleCount;
 	
 	return processedSampleCount;
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// Dummy Sound Interface
-//////////////////////////////////////////////////////////////////////////////
-
-int SNDDummyInit(int buffersize);
-void SNDDummyDeInit();
-void SNDDummyUpdateAudio(s16 *buffer, u32 num_samples);
-u32 SNDDummyGetAudioSpace();
-void SNDDummyMuteAudio();
-void SNDDummyUnMuteAudio();
-void SNDDummySetVolume(int volume);
-void SNDDummyClearBuffer();
-void SNDDummyFetchSamples(s16 *sampleBuffer, size_t sampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer);
-size_t SNDDummyPostProcessSamples(s16 *postProcessBuffer, size_t requestedSampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer);
-
-SoundInterface_struct SNDDummy = {
-	SNDCORE_DUMMY,
-	"Dummy Sound Interface",
-	SNDDummyInit,
-	SNDDummyDeInit,
-	SNDDummyUpdateAudio,
-	SNDDummyGetAudioSpace,
-	SNDDummyMuteAudio,
-	SNDDummyUnMuteAudio,
-	SNDDummySetVolume,
-	SNDDummyClearBuffer,
-	SNDDummyFetchSamples,
-	SNDDummyPostProcessSamples
-};
-
-int SNDDummyInit(int buffersize) { return 0; }
-void SNDDummyDeInit() {}
-void SNDDummyUpdateAudio(s16 *buffer, u32 num_samples) { }
-u32 SNDDummyGetAudioSpace() { return DESMUME_SAMPLE_RATE/60 + 5; }
-void SNDDummyMuteAudio() {}
-void SNDDummyUnMuteAudio() {}
-void SNDDummySetVolume(int volume) {}
-void SNDDummyClearBuffer() {}
-void SNDDummyFetchSamples(s16 *sampleBuffer, size_t sampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer) {}
-size_t SNDDummyPostProcessSamples(s16 *postProcessBuffer, size_t requestedSampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer) { return 0; }
-
-//---------wav writer------------
-
-typedef struct {
-	char id[4];
-	u32 size;
-} chunk_struct;
-
-typedef struct {
-	chunk_struct riff;
-	char rifftype[4];
-} waveheader_struct;
-
-typedef struct {
-	chunk_struct chunk;
-	u16 compress;
-	u16 numchan;
-	u32 rate;
-	u32 bytespersec;
-	u16 blockalign;
-	u16 bitspersample;
-} fmt_struct;
-
-WavWriter::WavWriter() 
-: spufp(NULL)
-{
-}
-bool WavWriter::open(const std::string & fname)
-{
-	waveheader_struct waveheader;
-	fmt_struct fmt;
-	chunk_struct data;
-	size_t elems_written = 0;
-
-	if ((spufp = fopen(fname.c_str(), "wb")) == NULL)
-		return false;
-
-	// Do wave header
-	memcpy(waveheader.riff.id, "RIFF", 4);
-	waveheader.riff.size = 0; // we'll fix this after the file is closed
-	memcpy(waveheader.rifftype, "WAVE", 4);
-	elems_written += fwrite((void *)&waveheader, 1, sizeof(waveheader_struct), spufp);
-
-	// fmt chunk
-	memcpy(fmt.chunk.id, "fmt ", 4);
-	fmt.chunk.size = 16; // we'll fix this at the end
-	fmt.compress = 1; // PCM
-	fmt.numchan = 2; // Stereo
-	fmt.rate = DESMUME_SAMPLE_RATE;
-	fmt.bitspersample = 16;
-	fmt.blockalign = fmt.bitspersample / 8 * fmt.numchan;
-	fmt.bytespersec = fmt.rate * fmt.blockalign;
-	elems_written += fwrite((void *)&fmt, 1, sizeof(fmt_struct), spufp);
-
-	// data chunk
-	memcpy(data.id, "data", 4);
-	data.size = 0; // we'll fix this at the end
-	elems_written += fwrite((void *)&data, 1, sizeof(chunk_struct), spufp);
-
-	return true;
-}
-
-void WavWriter::close()
-{
-	if(!spufp) return;
-	size_t elems_written = 0;
-	long length = ftell(spufp);
-
-	// Let's fix the riff chunk size and the data chunk size
-	fseek(spufp, sizeof(waveheader_struct)-0x8, SEEK_SET);
-	length -= 0x8;
-	elems_written += fwrite((void *)&length, 1, 4, spufp);
-
-	fseek(spufp, sizeof(waveheader_struct)+sizeof(fmt_struct)+0x4, SEEK_SET);
-	length -= sizeof(waveheader_struct)+sizeof(fmt_struct);
-	elems_written += fwrite((void *)&length, 1, 4, spufp);
-	fclose(spufp);
-	spufp = NULL;
-}
-
-void WavWriter::update(void* soundData, int numSamples)
-{
-	if(!spufp) return;
-	//TODO - big endian for the s16 samples??
-	size_t elems_written = fwrite(soundData, numSamples*2, 2, spufp);
-}
-
-bool WavWriter::isRecording() const
-{
-	return spufp != NULL;
-}
-
-
-static WavWriter wavWriter;
-
-void WAV_End()
-{
-	wavWriter.close();
-}
-
-bool WAV_Begin(const char* fname, WAVMode mode)
-{
-	WAV_End();
-
-	if(!wavWriter.open(fname))
-		return false;
-
-	if(mode == WAVMODE_ANY)
-		mode = WAVMODE_CORE;
-	wavWriter.mode = mode;
-
-	driver->USR_InfoMessage("WAV recording started.");
-
-	return true;
-}
-
-bool WAV_IsRecording(WAVMode mode)
-{
-	if(wavWriter.mode == mode || mode == WAVMODE_ANY)
-		return wavWriter.isRecording();
-	return false;
-}
-
-void WAV_WavSoundUpdate(void* soundData, int numSamples, WAVMode mode)
-{
-	if(wavWriter.mode == mode || mode == WAVMODE_ANY)
-		wavWriter.update(soundData, numSamples);
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////////

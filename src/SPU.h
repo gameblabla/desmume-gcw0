@@ -26,7 +26,6 @@
 
 #include "types.h"
 #include "matrix.h"
-#include "metaspu/metaspu.h"
 
 class EMUFILE;
 
@@ -64,8 +63,8 @@ struct SoundInterface_struct
    void (*UnMuteAudio)();
    void (*SetVolume)(int volume);
    void (*ClearBuffer)();
-	void (*FetchSamples)(s16 *sampleBuffer, size_t sampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer);
-	size_t (*PostProcessSamples)(s16 *postProcessBuffer, size_t requestedSampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer);
+	void (*FetchSamples)(s16 *sampleBuffer, size_t sampleCoun);
+	size_t (*PostProcessSamples)(s16 *postProcessBuffer, size_t requestedSampleCount);
 };
 
 extern SoundInterface_struct SNDDummy;
@@ -230,7 +229,7 @@ void SPU_ReInit(bool fakeBoot = false);
 int SPU_Init(int coreid, int buffersize);
 void SPU_Pause(int pause);
 void SPU_SetVolume(int volume);
-void SPU_SetSynchMode(int mode, int method);
+void SPU_SetSynchMode();
 void SPU_ClearOutputBuffer(void);
 void SPU_Reset(void);
 void SPU_DeInit(void);
@@ -264,8 +263,7 @@ static FORCEINLINE u16 SPU_ReadWord(u32 addr) { return SPU_core->ReadWord(addr &
 static FORCEINLINE u32 SPU_ReadLong(u32 addr) { return SPU_core->ReadLong(addr & 0x0FFF); }
 void SPU_Emulate_core(void);
 void SPU_Emulate_user(bool mix = true);
-void SPU_DefaultFetchSamples(s16 *sampleBuffer, size_t sampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer);
-size_t SPU_DefaultPostProcessSamples(s16 *postProcessBuffer, size_t requestedSampleCount, ESynchMode synchMode, ISynchronizingAudioBuffer *theSynchronizer);
+size_t SPU_DefaultPostProcessSamples(s16 *postProcessBuffer, size_t requestedSampleCount);
 
 void spu_savestate(EMUFILE* os);
 bool spu_loadstate(EMUFILE* is, int size);

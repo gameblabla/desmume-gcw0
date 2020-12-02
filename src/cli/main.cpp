@@ -66,8 +66,6 @@ static SDL_Surface * surface, *rl_sf;
 static int sdl_videoFlags;
 
 SoundInterface_struct *SNDCoreList[] = {
-  &SNDDummy,
-  &SNDDummy,
   &SNDSDL,
   NULL
 };

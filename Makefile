@@ -13,7 +13,7 @@ CFLAGS      += -Isrc -Isrc/cli -Isrc/addons -Isrc/utils -Isrc/utils/tinyxml -Isr
 LDFLAGS     = -lSDL -lm -lz -lasound -lstdc++ -pthread
 
 # Files to be compiled
-SRCDIR    = ./src ./src/cli ./src/addons ./src/filter ./src/metaspu ./src/utils ./src/utils/tinyxml ./src/utils/libfat ./src/utils/decrypt
+SRCDIR    = ./src ./src/cli ./src/addons ./src/filter ./src/utils ./src/utils/tinyxml ./src/utils/libfat ./src/utils/decrypt
 VPATH     = $(SRCDIR)
 SRC_C   = $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.cpp))
 OBJ_C   = $(notdir $(patsubst %.cpp, %.o, $(SRC_C)))
