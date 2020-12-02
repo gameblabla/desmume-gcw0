@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
 #include <sstream>
 
 #include "armcpu.h"

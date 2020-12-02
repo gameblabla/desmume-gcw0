@@ -19,7 +19,6 @@
 
 #include <string.h>
 #include <algorithm>
-#include <assert.h>
 #include <map>
 
 #include "texcache.h"

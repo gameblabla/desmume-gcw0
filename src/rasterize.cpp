@@ -29,7 +29,6 @@
 #include "rasterize.h"
 
 #include <algorithm>
-#include <assert.h>
 #include <math.h>
 #include <string.h>
 
@@ -318,7 +317,7 @@ struct PolyAttr
 			case 1: return backfacing;
 			case 2: return !backfacing;
 			case 3: return true;
-			default: assert(false); return false;
+			default: return false;
 		}
 	}
 
@@ -950,7 +949,6 @@ public:
 		for(;;) {
 			//generate new edges if necessary. we must avoid regenerating edges when they are incomplete
 			//so that they can be continued on down the shape
-			assert(rv != type);
 			int _lv = lv==type?0:lv; //make sure that we ask for vert 0 when the variable contains the starting value
 			if(step_left) left = edge_fx_fl(_lv,lv-1,(VERT**)&verts, failure);
 			if(step_right) right = edge_fx_fl(rv,rv+1,(VERT**)&verts, failure);
@@ -1195,9 +1193,6 @@ void SoftRasterizerEngine::initFramebuffer(const int width, const int height, co
 
 	if(clearImage)
 	{
-		//need to handle this somehow..
-		assert(width==GFX3D_FRAMEBUFFER_WIDTH && height==GFX3D_FRAMEBUFFER_HEIGHT);
-
 		u16* clearImage = (u16*)MMU.texInfo.textureSlotAddr[2];
 		u16* clearDepth = (u16*)MMU.texInfo.textureSlotAddr[3];
 
@@ -1290,14 +1285,12 @@ void SoftRasterizerEngine::updateFogTable()
 	u32 fogOffset = min<u32>(max<u32>(gfx3d.renderState.fogOffset, 0), 32768);
 	u32 iMin = min<u32>(32768, (( 1 + 1) << incrementDivShift) + fogOffset + 1 - increment);
 	u32 iMax = min<u32>(32768, ((32 + 1) << incrementDivShift) + fogOffset + 1 - increment);
-	assert(iMin <= iMax);
 	memset(fogTable, fogDensity[0], iMin);
 	for(u32 i = iMin; i < iMax; i++) {
 		int num = (i - fogOffset + (increment-1));
 		int j = (num >> incrementDivShift) - 1;
 		u32 value = (num & ~(increment-1)) + fogOffset;
 		u32 diff = value - i;
-		assert(j >= 1 && j < 32);
 		fogTable[i] = ((diff*(fogDensity[j-1]) + (increment-diff)*(fogDensity[j])) >> incrementDivShift);
 	}
 	memset(fogTable+iMax, fogDensity[31], 32768-iMax);
@@ -1413,7 +1406,6 @@ void SoftRasterizerEngine::framebufferProcess()
 			if(!destFragment.fogged) continue;
 			FragmentColor &destFragmentColor = screenColor[i];
 			u32 fogIndex = destFragment.depth>>9;
-			assert(fogIndex<32768);
 			u8 fog = fogTable[fogIndex];
 			if(fog==127) fog=128;
 			if(!gfx3d.renderState.enableFogAlphaOnly)

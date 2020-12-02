@@ -19,8 +19,6 @@
 */
 
 #include "GPU.h"
-
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
@@ -491,7 +489,7 @@ void GPU_addBack(GPU * gpu, u8 num)
 template<int WIN_NUM>
 FORCEINLINE u8 GPU::withinRect(u16 x) const
 {
-	assert(x<256); //only way to be >256 is in debug views, and mosaic shouldnt be enabled for those
+	//assert(x<256); //only way to be >256 is in debug views, and mosaic shouldnt be enabled for those
 	return curr_win[WIN_NUM][x];
 }
 
@@ -801,11 +799,6 @@ FORCEINLINE void GPU::__setFinalColorBck(u16 color, const u32 x, const int opaqu
 template<bool MOSAIC, bool BACKDROP, int FUNCNUM>
 FORCEINLINE void GPU::___setFinalColorBck(u16 color, const u32 x, const int opaque)
 {
-	//under ordinary circumstances, nobody should pass in something >=256
-	//but in fact, someone is going to try. specifically, that is the map viewer debug tools
-	//which try to render the enter BG. in cases where that is large, it could be up to 1024 wide.
-	assert(debug || x<256);
-
 	int x_int;
 
 	//due to this early out, we will get incorrect behavior in cases where 
@@ -2017,7 +2010,6 @@ PLAIN_CLEAR:
 	memset(sprWin, 0, 256);
 	
 	// init pixels priorities
-	assert(NB_PRIORITIES==4);
 	gpu->itemsForPriority[0].nbPixelsX = 0;
 	gpu->itemsForPriority[1].nbPixelsX = 0;
 	gpu->itemsForPriority[2].nbPixelsX = 0;
@@ -2144,7 +2136,7 @@ template<bool SKIP> static void GPU_RenderLine_DispCapture(u16 l)
 			for (int i = 0; i < 256; i++)  \
 				HostWriteWord(DST, i << 1, HostReadWord(SRC, i << 1) | (SETALPHABIT?(1<<15):0)); \
 			break; \
-			default: assert(false); \
+			default: break; \
 		}
 	
 	GPU * gpu = MainScreen.gpu;

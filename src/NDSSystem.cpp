@@ -2427,7 +2427,7 @@ const UserInput& NDS_getRawUserInput()
 }
 UserInput& NDS_getProcessingUserInput()
 {
-	assert(validToProcessInput);
+	//assert(validToProcessInput);
 	return intermediateUserInput;
 }
 bool NDS_isProcessingUserInput()
@@ -2490,7 +2490,7 @@ static inline void gotInputRequest()
 {
 	// nobody should set the raw input while we're processing the input.
 	// it might not screw anything up but it would be completely useless.
-	assert(!validToProcessInput);
+	//assert(!validToProcessInput);
 }
 
 void NDS_setPad(bool R,bool L,bool D,bool U,bool T,bool S,bool B,bool A,bool Y,bool X,bool W,bool E,bool G, bool F)
@@ -2703,7 +2703,6 @@ void NDS_suspendProcessingInput(bool suspend)
 	if(suspend)
 	{
 		// enter non-processing block
-		assert(validToProcessInput);
 		validToProcessInput = false;
 		suspendCount++;
 	}

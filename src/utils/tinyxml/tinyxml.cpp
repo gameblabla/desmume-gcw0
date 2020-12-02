@@ -185,8 +185,8 @@ void TiXmlNode::Clear()
 
 TiXmlNode* TiXmlNode::LinkEndChild( TiXmlNode* node )
 {
-	assert( node->parent == 0 || node->parent == this );
-	assert( node->GetDocument() == 0 || node->GetDocument() == this->GetDocument() );
+	//assert( node->parent == 0 || node->parent == this );
+	//assert( node->GetDocument() == 0 || node->GetDocument() == this->GetDocument() );
 
 	if ( node->Type() == TiXmlNode::TINYXML_DOCUMENT )
 	{
@@ -252,7 +252,7 @@ TiXmlNode* TiXmlNode::InsertBeforeChild( TiXmlNode* beforeThis, const TiXmlNode&
 	}
 	else
 	{
-		assert( firstChild == beforeThis );
+		//assert( firstChild == beforeThis );
 		firstChild = node;
 	}
 	beforeThis->prev = node;
@@ -285,7 +285,7 @@ TiXmlNode* TiXmlNode::InsertAfterChild( TiXmlNode* afterThis, const TiXmlNode& a
 	}
 	else
 	{
-		assert( lastChild == afterThis );
+		//assert( lastChild == afterThis );
 		lastChild = node;
 	}
 	afterThis->next = node;
@@ -340,7 +340,7 @@ bool TiXmlNode::RemoveChild( TiXmlNode* removeThis )
 
 	if ( removeThis->parent != this )
 	{	
-		assert( 0 );
+		//assert( 0 );
 		return false;
 	}
 
@@ -390,7 +390,7 @@ const TiXmlNode* TiXmlNode::IterateChildren( const TiXmlNode* previous ) const
 	}
 	else
 	{
-		assert( previous->parent == this );
+		//assert( previous->parent == this );
 		return previous->NextSibling();
 	}
 }
@@ -404,7 +404,7 @@ const TiXmlNode* TiXmlNode::IterateChildren( const char * val, const TiXmlNode* 
 	}
 	else
 	{
-		assert( previous->parent == this );
+		//assert( previous->parent == this );
 		return previous->NextSibling( val );
 	}
 }
@@ -800,7 +800,7 @@ void TiXmlElement::SetAttribute( const std::string& _name, const std::string& _v
 void TiXmlElement::Print( FILE* cfile, int depth ) const
 {
 	int i;
-	assert( cfile );
+	//assert( cfile );
 	for ( i=0; i<depth; i++ ) {
 		fprintf( cfile, "    " );
 	}
@@ -1056,9 +1056,9 @@ bool TiXmlDocument::LoadFile( FILE* file, TiXmlEncoding encoding )
 
 	buf[length] = 0;
 	while( *p ) {
-		assert( p < (buf+length) );
-		assert( q <= (buf+length) );
-		assert( q <= p );
+		//assert( p < (buf+length) );
+		//assert( q <= (buf+length) );
+		//assert( q <= p );
 
 		if ( *p == CR ) {
 			*q++ = LF;
@@ -1071,7 +1071,7 @@ bool TiXmlDocument::LoadFile( FILE* file, TiXmlEncoding encoding )
 			*q++ = *p++;
 		}
 	}
-	assert( q <= (buf+length) );
+	//assert( q <= (buf+length) );
 	*q = 0;
 
 	Parse( buf, 0, encoding );
@@ -1144,7 +1144,7 @@ TiXmlNode* TiXmlDocument::Clone() const
 
 void TiXmlDocument::Print( FILE* cfile, int depth ) const
 {
-	assert( cfile );
+	//assert( cfile );
 	for ( const TiXmlNode* node=FirstChild(); node; node=node->NextSibling() )
 	{
 		node->Print( cfile, depth );
@@ -1296,7 +1296,7 @@ TiXmlComment& TiXmlComment::operator=( const TiXmlComment& base )
 
 void TiXmlComment::Print( FILE* cfile, int depth ) const
 {
-	assert( cfile );
+	//assert( cfile );
 	for ( int i=0; i<depth; i++ )
 	{
 		fprintf( cfile,  "    " );
@@ -1331,7 +1331,7 @@ TiXmlNode* TiXmlComment::Clone() const
 
 void TiXmlText::Print( FILE* cfile, int depth ) const
 {
-	assert( cfile );
+	//assert( cfile );
 	if ( cdata )
 	{
 		int i;
@@ -1506,17 +1506,17 @@ TiXmlAttributeSet::TiXmlAttributeSet()
 
 TiXmlAttributeSet::~TiXmlAttributeSet()
 {
-	assert( sentinel.next == &sentinel );
-	assert( sentinel.prev == &sentinel );
+	//assert( sentinel.next == &sentinel );
+	//assert( sentinel.prev == &sentinel );
 }
 
 
 void TiXmlAttributeSet::Add( TiXmlAttribute* addMe )
 {
     #ifdef TIXML_USE_STL
-	assert( !Find( TIXML_STRING( addMe->Name() ) ) );	// Shouldn't be multiply adding to the set.
+	//assert( !Find( TIXML_STRING( addMe->Name() ) ) );	// Shouldn't be multiply adding to the set.
 	#else
-	assert( !Find( addMe->Name() ) );	// Shouldn't be multiply adding to the set.
+	//assert( !Find( addMe->Name() ) );	// Shouldn't be multiply adding to the set.
 	#endif
 
 	addMe->next = &sentinel;
@@ -1541,7 +1541,7 @@ void TiXmlAttributeSet::Remove( TiXmlAttribute* removeMe )
 			return;
 		}
 	}
-	assert( 0 );		// we tried to remove a non-linked attribute.
+	//assert( 0 );		// we tried to remove a non-linked attribute.
 }
 
 

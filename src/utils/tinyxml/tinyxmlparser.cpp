@@ -180,7 +180,7 @@ class TiXmlParsingData
 	// Only used by the document!
 	TiXmlParsingData( const char* start, int _tabsize, int row, int col )
 	{
-		assert( start );
+		//assert( start );
 		stamp = start;
 		tabsize = _tabsize;
 		cursor.row = row;
@@ -195,7 +195,7 @@ class TiXmlParsingData
 
 void TiXmlParsingData::Stamp( const char* now, TiXmlEncoding encoding )
 {
-	assert( now );
+	//assert( now );
 
 	// Do nothing if the tabsize is 0.
 	if ( tabsize < 1 )
@@ -207,7 +207,7 @@ void TiXmlParsingData::Stamp( const char* now, TiXmlEncoding encoding )
 	int row = cursor.row;
 	int col = cursor.col;
 	const char* p = stamp;
-	assert( p );
+	//assert( p );
 
 	while ( p < now )
 	{
@@ -304,10 +304,10 @@ void TiXmlParsingData::Stamp( const char* now, TiXmlEncoding encoding )
 	}
 	cursor.row = row;
 	cursor.col = col;
-	assert( cursor.row >= -1 );
-	assert( cursor.col >= -1 );
+	//assert( cursor.row >= -1 );
+	//assert( cursor.col >= -1 );
 	stamp = p;
-	assert( stamp );
+	//assert( stamp );
 }
 
 
@@ -379,7 +379,7 @@ const char* TiXmlBase::SkipWhiteSpace( const char* p, TiXmlEncoding encoding )
 
 /*static*/ bool TiXmlBase::StreamTo( std::istream * in, int character, TIXML_STRING * tag )
 {
-	//assert( character > 0 && character < 128 );	// else it won't work in utf-8
+	////assert( character > 0 && character < 128 );	// else it won't work in utf-8
 	while ( in->good() )
 	{
 		int c = in->peek();
@@ -404,7 +404,7 @@ const char* TiXmlBase::ReadName( const char* p, TIXML_STRING * name, TiXmlEncodi
 	//name->clear();
 	// So use this:
 	*name = "";
-	assert( p );
+	//assert( p );
 
 	// Names start with letters or underscores.
 	// Of course, in unicode, tinyxml has no idea what a letter *is*. The
@@ -516,7 +516,7 @@ const char* TiXmlBase::GetEntity( const char* p, char* value, int* length, TiXml
 	{
 		if ( strncmp( entity[i].str, p, entity[i].strLength ) == 0 )
 		{
-			assert( strlen( entity[i].str ) == entity[i].strLength );
+			//assert( strlen( entity[i].str ) == entity[i].strLength );
 			*value = entity[i].chr;
 			*length = 1;
 			return ( p + entity[i].strLength );
@@ -536,11 +536,11 @@ bool TiXmlBase::StringEqual( const char* p,
 							 bool ignoreCase,
 							 TiXmlEncoding encoding )
 {
-	assert( p );
-	assert( tag );
+	//assert( p );
+	//assert( tag );
 	if ( !p || !*p )
 	{
-		assert( 0 );
+		//assert( 0 );
 		return false;
 	}
 
@@ -770,7 +770,7 @@ const char* TiXmlDocument::Parse( const char* p, TiXmlParsingData* prevData, TiX
 		{
 			TiXmlDeclaration* dec = node->ToDeclaration();
 			const char* enc = dec->Encoding();
-			assert( enc );
+			//assert( enc );
 
 			if ( *enc == 0 )
 				encoding = TIXML_ENCODING_UTF8;
@@ -801,7 +801,7 @@ void TiXmlDocument::SetError( int err, const char* pError, TiXmlParsingData* dat
 	if ( error )
 		return;
 
-	assert( err > 0 && err < TIXML_ERROR_STRING_COUNT );
+	//assert( err > 0 && err < TIXML_ERROR_STRING_COUNT );
 	error   = true;
 	errorId = err;
 	errorDesc = errorString[ errorId ];
@@ -957,7 +957,7 @@ void TiXmlElement::StreamIn (std::istream * in, TIXML_STRING * tag)
 			// We now have either a closing tag...or another node.
 			// We should be at a "<", regardless.
 			if ( !in->good() ) return;
-			assert( in->peek() == '<' );
+			//assert( in->peek() == '<' );
 			int tagIndex = (int) tag->length();
 
 			bool closingTag = false;
@@ -989,7 +989,7 @@ void TiXmlElement::StreamIn (std::istream * in, TIXML_STRING * tag)
 					size_t len = tag->size();
 					const char* start = tag->c_str() + len - 9;
 					if ( strcmp( start, "<![CDATA[" ) == 0 ) {
-						assert( !closingTag );
+						//assert( !closingTag );
 						break;
 					}
 				}
@@ -1016,7 +1016,7 @@ void TiXmlElement::StreamIn (std::istream * in, TIXML_STRING * tag)
 						document->SetError( TIXML_ERROR_EMBEDDED_NULL, 0, 0, TIXML_ENCODING_UNKNOWN );
 					return;
 				}
-				assert( c == '>' );
+				//assert( c == '>' );
 				*tag += (char) c;
 
 				// We are done, once we've found our closing tag.

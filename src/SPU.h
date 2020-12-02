@@ -21,7 +21,6 @@
 
 #include <iosfwd>
 #include <string>
-#include <assert.h>
 #include <stdio.h>
 
 #include "types.h"

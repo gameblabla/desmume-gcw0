@@ -826,7 +826,7 @@ static void savestate_WriteChunk(EMUFILE* os, int type, void (*saveproc)(EMUFILE
 
 	//get the size
 	u32 pos2 = os->ftell();
-	assert(pos2 != (u32)-1); // if this assert fails, saveproc did something bad
+	//assert(pos2 != (u32)-1); // if this assert fails, saveproc did something bad
 	u32 size = (pos2 - pos1) - (2 * sizeof(u32));
 
 	//fill in the actual size
