@@ -2,7 +2,7 @@
 Type=Application
 Name=Desmume
 Comment=NDS emulator
-Exec=desmume %f
+Exec=desmume.elf %f
 Icon=icon
 Terminal=false
 Categories=emulators;
