@@ -216,56 +216,6 @@ NDS_header* NDS_getROMHeader(void)
 
 
 
-
-void debug()
-{
-	//if(NDS_ARM9.R[15]==0x020520DC) emu_halt();
-	//DSLinux
-	//if(NDS_ARM9.CPSR.bits.mode == 0) emu_halt();
-	//if((NDS_ARM9.R[15]&0xFFFFF000)==0) emu_halt();
-	//if((NDS_ARM9.R[15]==0x0201B4F4)/*&&(NDS_ARM9.R[1]==0x0)*/) emu_halt();
-	//AOE
-	//if((NDS_ARM9.R[15]==0x01FFE194)&&(NDS_ARM9.R[0]==0)) emu_halt();
-	//if((NDS_ARM9.R[15]==0x01FFE134)&&(NDS_ARM9.R[0]==0)) emu_halt();
-
-	//BBMAN
-	//if(NDS_ARM9.R[15]==0x02098B4C) emu_halt();
-	//if(NDS_ARM9.R[15]==0x02004924) emu_halt();
-	//if(NDS_ARM9.R[15]==0x02004890) emu_halt();
-
-	//if(NDS_ARM9.R[15]==0x0202B800) emu_halt();
-	//if(NDS_ARM9.R[15]==0x0202B3DC) emu_halt();
-	//if((NDS_ARM9.R[1]==0x9AC29AC1)&&(!fait)) {emu_halt();fait = TRUE;}
-	//if(NDS_ARM9.R[1]==0x0400004A) {emu_halt();fait = TRUE;}
-	/*if(NDS_ARM9.R[4]==0x2E33373C) emu_halt();
-	if(NDS_ARM9.R[15]==0x02036668) //emu_halt();
-	{
-	nds.logcount++;
-	sprintf(logbuf, "%d %08X", nds.logcount, NDS_ARM9.R[13]);
-	log::ajouter(logbuf);
-	if(nds.logcount==89) execute=FALSE;
-	}*/
-	//if(NDS_ARM9.instruction==0) emu_halt();
-	//if((NDS_ARM9.R[15]>>28)) emu_halt();
-}
-
-#if 0 /* not used */
-//http://www.aggregate.org/MAGIC/#Population%20Count%20(Ones%20Count)
-static u32 ones32(u32 x)
-{
-	/* 32-bit recursive reduction using SWAR...
-	but first step is mapping 2-bit values
-	into sum of 2 1-bit values in sneaky way
-	*/
-	x -= ((x >> 1) & 0x55555555);
-	x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
-	x = (((x >> 4) + x) & 0x0f0f0f0f);
-	x += (x >> 8);
-	x += (x >> 16);
-	return(x & 0x0000003f);
-}
-#endif
-
 RomBanner::RomBanner(bool defaultInit)
 {
 	if(!defaultInit) return;
