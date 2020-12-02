@@ -40,6 +40,9 @@ all: $(PRGNAME)
 # Rules to make executable
 $(PRGNAME): $(OBJS)  
 	$(CXX) $(CXXFLAGS) -o $(PRGNAME) $^ $(LDFLAGS)
+ifeq ($(HUGE_PAGES), 1)
+	/opt/gcw0-toolchain/usr/bin/hugeedit --data --text $(PRGNAME)
+endif
 
 $(OBJ_C) : %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
