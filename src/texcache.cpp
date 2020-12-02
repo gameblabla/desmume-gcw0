@@ -730,7 +730,9 @@ TexCacheItem* TexCache_SetTexture(TexCache_TexFormat TEXFORMAT, u32 format, u32 
 	{
 	case TexFormat_32bpp: return texCache.scan<TexFormat_32bpp>(format,texpal);
 	case TexFormat_15bpp: return texCache.scan<TexFormat_15bpp>(format,texpal);
-	default: assert(false); return NULL;
+	default:
+	//assert(false);
+	return NULL;
 	}
 }
 

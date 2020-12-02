@@ -2124,7 +2124,7 @@ static bool gfx3d_ysort_compare(int num1, int num2)
 {
 	bool original = gfx3d_ysort_compare_orig(num1,num2);
 	bool kalven = gfx3d_ysort_compare_kalven(num1,num2);
-	assert(original == kalven);
+	//assert(original == kalven);
 	return original;
 }
 
@@ -2730,16 +2730,16 @@ private:
 		//exiting volume: insert the clipped point
 		if(!out0 && out1)
 		{
-			CLIPLOG(" exiting\n");
-			assert((u32)numScratchClipVerts < MAX_SCRATCH_CLIP_VERTS);
+			//CLIPLOG(" exiting\n");
+			//assert((u32)numScratchClipVerts < MAX_SCRATCH_CLIP_VERTS);
 			scratchClipVerts[numScratchClipVerts] = clipPoint<coord, which>(hirez,vert0,vert1);
 			m_next.clipVert(hirez,&scratchClipVerts[numScratchClipVerts++]);
 		}
 
 		//entering volume: insert clipped point and the next (interior) point
 		if(out0 && !out1) {
-			CLIPLOG(" entering\n");
-			assert((u32)numScratchClipVerts < MAX_SCRATCH_CLIP_VERTS);
+			//CLIPLOG(" entering\n");
+			//assert((u32)numScratchClipVerts < MAX_SCRATCH_CLIP_VERTS);
 			scratchClipVerts[numScratchClipVerts] = clipPoint<coord, which>(hirez,vert1,vert0);
 			m_next.clipVert(hirez,&scratchClipVerts[numScratchClipVerts++]);
 			m_next.clipVert(hirez,vert1);
@@ -2757,7 +2757,7 @@ public:
 	}
 	void clipVert(bool hirez, VERT* vert)
 	{
-		assert((u32)m_numVerts < MAX_CLIPPED_VERTS);
+		//assert((u32)m_numVerts < MAX_CLIPPED_VERTS);
 		*m_nextDestVert++ = *vert;
 		m_numVerts++;
 	}
@@ -2792,7 +2792,7 @@ template<bool hirez> void GFX3D_Clipper::clipPoly(POLY* poly, VERT** verts)
 		clipper.clipVert(hirez,verts[i]);
 	int outType = clipper.finish(hirez);
 
-	assert((u32)outType < MAX_CLIPPED_VERTS);
+	//assert((u32)outType < MAX_CLIPPED_VERTS);
 	if(outType < 3)
 	{
 		//a totally clipped poly. discard it.
@@ -2808,18 +2808,6 @@ template<bool hirez> void GFX3D_Clipper::clipPoly(POLY* poly, VERT** verts)
 //these templates needed to be instantiated manually
 template void GFX3D_Clipper::clipPoly<true>(POLY* poly, VERT** verts);
 template void GFX3D_Clipper::clipPoly<false>(POLY* poly, VERT** verts);
-
-void GFX3D_Clipper::clipSegmentVsPlane(VERT** verts, const int coord, int which)
-{
-	// not used (it's probably ok to delete this function)
-	assert(0);
-}
-
-void GFX3D_Clipper::clipPolyVsPlane(const int coord, int which)
-{
-	// not used (it's probably ok to delete this function)
-	assert(0);
-}
 
 #else // if not OPTIMIZED_CLIPPING_METHOD:
 

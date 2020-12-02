@@ -239,7 +239,8 @@ public:
 				pos = size()+offset;
 				break;
 			default:
-				assert(false);
+				//assert(false);
+			break;
 		}
 		reserve(pos);
 		return 0;

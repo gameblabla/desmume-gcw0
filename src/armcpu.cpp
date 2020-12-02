@@ -748,7 +748,7 @@ template u32 armcpu_exec<1,true>();
 void setIF(int PROCNUM, u32 flag)
 {
 	//don't set generated bits!!!
-	assert(!(flag&0x00200000));
+	//assert(!(flag&0x00200000));
 	
 	MMU.reg_IF_bits[PROCNUM] |= flag;
 	

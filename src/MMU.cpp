@@ -360,8 +360,8 @@ static FORCEINLINE u32 MMU_LCDmap(u32 addr, bool& unmapped, bool& restricted)
 			};
 			int region = (addr >> 23)&1;
 			int block = (addr >> 14)&3;
-			assert(region<2);
-			assert(block<4);
+			//assert(region<2);
+			//assert(block<4);
 			iwram_block_16k = arm7_siwram_blocks[region][MMU.WRAMCNT][block];
 		} //PROCNUM == ARMCPU_ARM7
 		else
@@ -375,7 +375,7 @@ static FORCEINLINE u32 MMU_LCDmap(u32 addr, bool& unmapped, bool& restricted)
 				{8,8,8,8}, //WRAMCNT = 3 -> unmapped
 			};
 			int block = (addr >> 14)&3;
-			assert(block<4);
+			//assert(block<4);
 			iwram_block_16k = arm9_siwram_blocks[MMU.WRAMCNT][block];
 		}
 
@@ -390,7 +390,7 @@ static FORCEINLINE u32 MMU_LCDmap(u32 addr, bool& unmapped, bool& restricted)
 			unmapped = true;
 			return 0;
 		default:
-			assert(false); //how did this happen?
+			//assert(false); //how did this happen?
 			goto CASE2;
 		}
 	}
@@ -432,14 +432,14 @@ static FORCEINLINE u32 MMU_LCDmap(u32 addr, bool& unmapped, bool& restricted)
 	{
 		//already in LCDC range. just look it up to see whether it is unmapped
 		vram_page = (addr>>14)&63;
-		assert(vram_page<VRAM_LCDC_PAGES);
+		//assert(vram_page<VRAM_LCDC_PAGES);
 		vram_page = vram_lcdc_map[vram_page];
 	}
 	else
 	{
 		//map addresses in BG/OBJ range to an LCDC range
 		vram_page = (addr>>14)&(VRAM_ARM9_PAGES-1);
-		assert(vram_page<VRAM_ARM9_PAGES);
+		//assert(vram_page<VRAM_ARM9_PAGES);
 		vram_page = vram_arm9_map[vram_page];
 	}
 
@@ -1780,7 +1780,7 @@ static u32 readreg_DISP3DCNT(const int size, const u32 adr)
 	case 32:
 		return readreg_DISP3DCNT(8,adr)|(readreg_DISP3DCNT(8,adr+1)<<8);
 	}
-	assert(false);
+	//assert(false);
 	return 0;
 }
 
@@ -1811,7 +1811,7 @@ static u32 readreg_POWCNT1(const int size, const u32 adr) {
 	case 32:
 		return readreg_POWCNT1(8,adr)|(readreg_POWCNT1(8,adr+1)<<8);
 	}
-	assert(false);
+	//assert(false);
 	return 0;
 }
 static void writereg_POWCNT1(const int size, const u32 adr, const u32 val) { 
@@ -1901,9 +1901,9 @@ static INLINE u16 read_timer(int proc, int timerIndex)
 
 	//for unchained timers, we do not keep the timer up to date. its value will need to be calculated here
 	s32 diff = (s32)(nds.timerCycle[proc][timerIndex] - nds_timer);
-	assert(diff>=0);
-	if(diff<0) 
-		printf("NEW EMULOOP BAD NEWS PLEASE REPORT: TIME READ DIFF < 0 (%d) (%d) (%d)\n",diff,timerIndex,MMU.timerMODE[proc][timerIndex]);
+	//assert(diff>=0);
+	/*if(diff<0) 
+		printf("NEW EMULOOP BAD NEWS PLEASE REPORT: TIME READ DIFF < 0 (%d) (%d) (%d)\n",diff,timerIndex,MMU.timerMODE[proc][timerIndex]);*/
 	
 	s32 units = diff / (1<<MMU.timerMODE[proc][timerIndex]);
 	s32 ret;
@@ -1912,7 +1912,7 @@ static INLINE u16 read_timer(int proc, int timerIndex)
 		ret = 0; //I'm not sure why this is happening...
 		//whichever instruction setup this counter should advance nds_timer (I think?) and the division should truncate down to 65535 immediately
 	else if(units>65536) {
-		printf("NEW EMULOOP BAD NEWS PLEASE REPORT: UNITS %d:%d = %d\n",proc,timerIndex,units);
+		//printf("NEW EMULOOP BAD NEWS PLEASE REPORT: UNITS %d:%d = %d\n",proc,timerIndex,units);
 		ret = 0;
 	}
 	else ret = 65535 - units;
@@ -2326,12 +2326,13 @@ void DmaController::doCopy()
 	}
 
 	//need to figure out what to do about this
-	if(bogarted) 
+	// To fix ? Gameblabla 
+	/*if(bogarted) 
 	{
 		printf("YOUR GAME IS BOGARTED!!! PLEASE REPORT!!!\n");
 		assert(false);
 		return;
-	}
+	}*/
 
 	u32 src = saddr;
 	u32 dst = daddr;

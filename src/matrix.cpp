@@ -273,7 +273,7 @@ void MatrixStackPopMatrix (s32 *mtxCurr, MatrixStack *stack, int size)
 
 s32 * MatrixStackGetPos (MatrixStack *stack, int pos)
 {
-	assert(pos<31);
+	//assert(pos<31);
 	return &stack->matrix[pos*16];
 }
 
@@ -284,7 +284,7 @@ s32 * MatrixStackGet (MatrixStack *stack)
 
 void MatrixStackLoadMatrix (MatrixStack *stack, int pos, const s32 *ptr)
 {
-	assert(pos<31);
+	//assert(pos<31);
 	MatrixCopy (&stack->matrix[pos*16], ptr);
 }
 

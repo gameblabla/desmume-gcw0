@@ -64,10 +64,6 @@ using std::min;
 using std::max;
 using std::swap;
 
-template<typename T> T _min(T a, T b, T c) { return min(min(a,b),c); }
-template<typename T> T _max(T a, T b, T c) { return max(max(a,b),c); }
-template<typename T> T _min(T a, T b, T c, T d) { return min(_min(a,b,d),c); }
-template<typename T> T _max(T a, T b, T c, T d) { return max(_max(a,b,d),c); }
 
 static const int kUnsetTranslucentPolyID = 255;
 
@@ -78,58 +74,8 @@ static u8 index_start_table[8];
 
 static bool softRastHasNewData = false;
 
-////optimized float floor useful in limited cases
-////from http://www.stereopsis.com/FPU.html#convert
-////(unfortunately, it relies on certain FPU register settings)
-//int Real2Int(double val)
-//{
-//	const double _double2fixmagic = 68719476736.0*1.5;     //2^36 * 1.5,  (52-_shiftamt=36) uses limited precisicion to floor
-//	const int _shiftamt        = 16;                    //16.16 fixed point representation,
-//
-//	#ifdef WORDS_BIGENDIAN
-//		#define iman_				1
-//	#else
-//		#define iman_				0
-//	#endif
-//
-//	val		= val + _double2fixmagic;
-//	return ((int*)&val)[iman_] >> _shiftamt; 
-//}
-
-//// this probably relies on rounding settings..
-//int Real2Int(float val)
-//{
-//	//val -= 0.5f;
-//	//int temp;
-//	//__asm {
-//	//	fld val;
-//	//	fistp temp;
-//	//}
-//	//return temp;
-//	return 0;
-//}
-
-
-//doesnt work yet
-static FORCEINLINE int fastFloor(float f)
-{
-	float temp = f + 1.f;
-	int ret = (*((u32*)&temp))&0x7FFFFF;
-	return ret;
-}
-
-
-//INLINE static void SubmitVertex(int vert_index, VERT& rawvert)
-//{
-//	verts[vert_index] = &rawvert;
-//}
-
 static Fragment _screen[GFX3D_FRAMEBUFFER_WIDTH*GFX3D_FRAMEBUFFER_HEIGHT];
 static FragmentColor _screenColor[GFX3D_FRAMEBUFFER_WIDTH*GFX3D_FRAMEBUFFER_HEIGHT];
-
-static FORCEINLINE int iround(float f) {
-	return (int)f; //lol
-}
 
 
 typedef int fixed28_4;
@@ -508,11 +454,7 @@ public:
 
 	//round function - tkd3
 	float round_s(double val){
-		if (val > 0.0 ){
-			return floorf(val*256.0f+0.5f)/256.0f; //this value(256.0) is good result.(I think)
-		} else {
-			return -1.0*floorf(fabs(val)*256.0f+0.5f)/256.0f;
-		}
+		return -1.0*floorf(fabs(val)*256.0f+0.5f)/256.0f;
 	}
 
 	struct Shader
@@ -1584,7 +1526,7 @@ void SoftRasterizerEngine::performCoordAdjustment(const bool skipBackfacing)
 		//which is currently just a float
 		for(int j=0;j<type;j++)
 			for(int k=0;k<2;k++)
-				verts[j].coord[k] = (float)iround(16.0f * verts[j].coord[k]);
+				verts[j].coord[k] = (float)(int)(16.0f * verts[j].coord[k]);
 	}
 }
 
