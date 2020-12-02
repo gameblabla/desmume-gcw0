@@ -56,8 +56,6 @@ std::string toupper(const std::string& str);
 int HexStringToBytesLength(const std::string& str);
 int Base64StringToBytesLength(const std::string& str);
 std::string u32ToHexString(u32 val);
-std::string BytesToString(const void* data, int len);
-bool StringToBytes(const std::string& str, void* data, int len);
 
 std::vector<std::string> tokenize_str(const std::string & str,const std::string & delims);
 void splitpath(const char* path, char* drv, char* dir, char* name, char* ext);

@@ -340,7 +340,6 @@ int main(int argc, char ** argv) {
 	uninit_joy();
   
 	if (surface) SDL_FreeSurface(surface);
-	if (rl_sf) SDL_FreeSurface(rl_sf);
 	SDL_Quit();
 	NDS_DeInit();
 	return 0;

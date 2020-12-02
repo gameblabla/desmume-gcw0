@@ -160,11 +160,11 @@ public:
 	int get_Minutes() const { return (int) (_ticks % TicksPerHour / TicksPerMinute); }
 	int get_Seconds() const { return (int) (_ticks % TicksPerMinute / TicksPerSecond); }
 	s64 get_Ticks() const { return _ticks; }
-	float get_TotalDays() const { return (float) _ticks / TicksPerDay; }
-	float get_TotalHours() const { return (float) _ticks / TicksPerHour; }
-	float get_TotalMilliseconds() const { return (float) _ticks  / TicksPerMillisecond; }
-	float get_TotalMinutes() const { return (float) _ticks / TicksPerMinute; }
-	float get_TotalSeconds() const { return (float) _ticks / TicksPerSecond; }
+	double get_TotalDays() const { return (double) _ticks / TicksPerDay; }
+	double get_TotalHours() const { return (double) _ticks / TicksPerHour; }
+	double get_TotalMilliseconds() const { return (double) _ticks  / TicksPerMillisecond; }
+	double get_TotalMinutes() const { return (double) _ticks / TicksPerMinute; }
+	double get_TotalSeconds() const { return (double) _ticks / TicksPerSecond; }
 
 	TimeSpan Add (const TimeSpan &ts)
 	{
@@ -194,30 +194,31 @@ public:
 		//catch (OverflowException) throw new OverflowException (Locale.GetText ("This TimeSpan value is MinValue so you cannot get the duration."));
 	}
 
-	static TimeSpan FromDays (float value)
-	{
-		return From (value, TicksPerDay);
-	}
+	//removed per http://sourceforge.net/p/desmume/bugs/1484/ since it was erroneous (well, From() was) and wasn't being used
+	//static TimeSpan FromDays (double value)
+	//{
+	//	return From (value, TicksPerDay);
+	//}
 
-	static TimeSpan FromHours (float value)
-	{
-		return From (value, TicksPerHour);
-	}
+	//static TimeSpan FromHours (double value)
+	//{
+	//	return From (value, TicksPerHour);
+	//}
 
-	static TimeSpan FromMinutes (float value)
-	{
-		return From (value, TicksPerMinute);
-	}
+	//static TimeSpan FromMinutes (double value)
+	//{
+	//	return From (value, TicksPerMinute);
+	//}
 
-	static TimeSpan FromSeconds (float value)
-	{
-		return From (value, TicksPerSecond);
-	}
+	//static TimeSpan FromSeconds (double value)
+	//{
+	//	return From (value, TicksPerSecond);
+	//}
 
-	static TimeSpan FromMilliseconds (float value)
-	{
-		return From (value, TicksPerMillisecond);
-	}
+	//static TimeSpan FromMilliseconds (double value)
+	//{
+	//	return From (value, TicksPerMillisecond);
+	//}
 
 	static TimeSpan FromTicks (s64 value)
 	{
@@ -343,28 +344,29 @@ private:
 		return t;
 	}
 
-	static TimeSpan From (float value, s64 tickMultiplicator) 
-	{
-		//a bunch of error handling removed
+	//removed per http://sourceforge.net/p/desmume/bugs/1484/ since it was erroneous and wasn't being used
+	//static TimeSpan From (double value, s64 tickMultiplicator) 
+	//{
+	//	//a bunch of error handling removed
 
-		//if (Double.IsNaN (value)) throw new ArgumentException (Locale.GetText ("Value cannot be NaN."), "value");
-		//if (Double.IsNegativeInfinity (value) || Double.IsPositiveInfinity (value) ||
-		//	(value < MinValue.Ticks) || (value > MaxValue.Ticks))
-		//	throw new OverflowException (Locale.GetText ("Outside range [MinValue,MaxValue]"));
+	//	//if (Double.IsNaN (value)) throw new ArgumentException (Locale.GetText ("Value cannot be NaN."), "value");
+	//	//if (Double.IsNegativeInfinity (value) || Double.IsPositiveInfinity (value) ||
+	//	//	(value < MinValue.Ticks) || (value > MaxValue.Ticks))
+	//	//	throw new OverflowException (Locale.GetText ("Outside range [MinValue,MaxValue]"));
 
-		//try {
-		value = (value * (tickMultiplicator / TicksPerMillisecond));
+	//	//try {
+	//	value = (value * (tickMultiplicator / TicksPerMillisecond));
 
-		//	checked {
-		//		long val = (long) Math.Round(value);
-		//		return new TimeSpan (val * TicksPerMillisecond);
-		//	}
-		//}
-		//catch (OverflowException) {
-		//	throw new OverflowException (Locale.GetText ("Resulting timespan is too big."));
-		//}
-		//}
-	}
+	//	//	checked {
+	//	//		long val = (long) Math.Round(value);
+	//	//		return new TimeSpan (val * TicksPerMillisecond);
+	//	//	}
+	//	//}
+	//	//catch (OverflowException) {
+	//	//	throw new OverflowException (Locale.GetText ("Resulting timespan is too big."));
+	//	//}
+	//	//}
+	//}
 
 };
 
@@ -373,7 +375,7 @@ class DateTime
 private:
 	TimeSpan ticks;
 
-	static inline float round(const float x) { return floor(x + 0.5); }
+	static inline double round(const double x) { return floor(x + 0.5); }
 
 	static const int dp400 = 146097;
 	static const int dp100 = 36524;
@@ -616,7 +618,7 @@ public:
 		return ret;
 	}
 
-	DateTime AddDays (float value) const
+	DateTime AddDays (double value) const
 	{
 		return AddMilliseconds (round(value * 86400000));
 	}
@@ -630,12 +632,12 @@ public:
 		return DateTime (value + ticks.get_Ticks());
 	}
 
-	DateTime AddHours (float value) const
+	DateTime AddHours (double value) const
 	{
 		return AddMilliseconds (value * 3600000);
 	}
 
-	DateTime AddMilliseconds (float value) const
+	DateTime AddMilliseconds (double value) const
 	{
 		//removed error handling
 		/*		if ((value * TimeSpan.TicksPerMillisecond) > long.MaxValue ||
@@ -647,7 +649,7 @@ public:
 		return AddTicks (msticks);
 	}
 
-	DateTime AddMinutes (float value) const
+	DateTime AddMinutes (double value) const
 	{
 		return AddMilliseconds (value * 60000);
 	}
@@ -679,7 +681,7 @@ public:
 		return  temp.Add (get_TimeOfDay());
 	}
 
-	DateTime AddSeconds (float value) const
+	DateTime AddSeconds (double value) const
 	{
 		return AddMilliseconds (value * 1000);
 	}
