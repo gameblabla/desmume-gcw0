@@ -31,7 +31,6 @@
 #include <queue>
 #include <vector>
 
-#include "debug.h"
 #include "driver.h"
 #include "MMU.h"
 #include "SPU.h"

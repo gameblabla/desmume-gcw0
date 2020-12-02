@@ -20,7 +20,6 @@
 #ifndef MMU_H
 #define MMU_H
 
-#include "debug.h"
 #include "firmware.h"
 #include "mc.h"
 #include "mem.h"
@@ -619,22 +618,6 @@ extern u32 _MMU_MAIN_MEM_MASK16;
 extern u32 _MMU_MAIN_MEM_MASK32;
 void SetupMMU(bool debugConsole, bool dsi);
 
-FORCEINLINE void CheckMemoryDebugEvent(EDEBUG_EVENT event, const MMU_ACCESS_TYPE type, const u32 procnum, const u32 addr, const u32 size, const u32 val)
-{
-	//TODO - ugh work out a better prefetch event system
-	if(type == MMU_AT_CODE && event == DEBUG_EVENT_READ)
-		event = DEBUG_EVENT_EXECUTE;
-	if(CheckDebugEvent(event))
-	{
-		DebugEventData.memAccessType = type;
-		DebugEventData.procnum = procnum;
-		DebugEventData.addr = addr;
-		DebugEventData.size = size;
-		DebugEventData.val = val;
-		HandleDebugEvent(event);
-	}
-}
-
 
 //ALERT!!!!!!!!!!!!!!
 //the following inline functions dont do the 0x0FFFFFFF mask.
@@ -642,8 +625,6 @@ FORCEINLINE void CheckMemoryDebugEvent(EDEBUG_EVENT event, const MMU_ACCESS_TYPE
 
 FORCEINLINE u8 _MMU_read08(const int PROCNUM, const MMU_ACCESS_TYPE AT, const u32 addr)
 {
-	CheckMemoryDebugEvent(DEBUG_EVENT_READ,AT,PROCNUM,addr,8,0);
-
 	//special handling to un-protect the ARM7 bios during debug reading
 	if(PROCNUM == ARMCPU_ARM7 && AT == MMU_AT_DEBUG && addr<0x00004000)
 	{
@@ -677,8 +658,6 @@ FORCEINLINE u8 _MMU_read08(const int PROCNUM, const MMU_ACCESS_TYPE AT, const u3
 
 FORCEINLINE u16 _MMU_read16(const int PROCNUM, const MMU_ACCESS_TYPE AT, const u32 addr) 
 {
-	CheckMemoryDebugEvent(DEBUG_EVENT_READ,AT,PROCNUM,addr,16,0);
-
 	//special handling to un-protect the ARM7 bios during debug reading
 	if(PROCNUM == ARMCPU_ARM7 && AT == MMU_AT_DEBUG && addr<0x00004000)
 	{
@@ -725,8 +704,6 @@ dunno:
 
 FORCEINLINE u32 _MMU_read32(const int PROCNUM, const MMU_ACCESS_TYPE AT, const u32 addr)
 {
-	CheckMemoryDebugEvent(DEBUG_EVENT_READ,AT,PROCNUM,addr,32,0);
-
 	//special handling to un-protect the ARM7 bios during debug reading
 	if(PROCNUM == ARMCPU_ARM7 && AT == MMU_AT_DEBUG && addr<0x00004000)
 	{
@@ -790,8 +767,6 @@ dunno:
 
 FORCEINLINE void _MMU_write08(const int PROCNUM, const MMU_ACCESS_TYPE AT, const u32 addr, u8 val)
 {
-	CheckMemoryDebugEvent(DEBUG_EVENT_WRITE,AT,PROCNUM,addr,8,val);
-
 	//special handling for DMA: discard writes to TCM
 	if(PROCNUM==ARMCPU_ARM9 && AT == MMU_AT_DMA)
 	{
@@ -829,8 +804,6 @@ FORCEINLINE void _MMU_write08(const int PROCNUM, const MMU_ACCESS_TYPE AT, const
 
 FORCEINLINE void _MMU_write16(const int PROCNUM, const MMU_ACCESS_TYPE AT, const u32 addr, u16 val)
 {
-	CheckMemoryDebugEvent(DEBUG_EVENT_WRITE,AT,PROCNUM,addr,16,val);
-
 	//special handling for DMA: discard writes to TCM
 	if(PROCNUM==ARMCPU_ARM9 && AT == MMU_AT_DMA)
 	{
@@ -868,8 +841,6 @@ FORCEINLINE void _MMU_write16(const int PROCNUM, const MMU_ACCESS_TYPE AT, const
 
 FORCEINLINE void _MMU_write32(const int PROCNUM, const MMU_ACCESS_TYPE AT, const u32 addr, u32 val)
 {
-	CheckMemoryDebugEvent(DEBUG_EVENT_WRITE,AT,PROCNUM,addr,32,val);
-
 	//special handling for DMA: discard writes to TCM
 	if(PROCNUM==ARMCPU_ARM9 && AT == MMU_AT_DMA)
 	{

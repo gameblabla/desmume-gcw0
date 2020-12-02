@@ -28,7 +28,6 @@
 //#define UNTESTEDOPCODEDEBUG
 #include "instructions.h"
 #include "cp15.h"
-#include "debug.h"
 #include "MMU.h"
 #include "armcpu.h"
 #include "NDSSystem.h"
@@ -3115,8 +3114,6 @@ TEMPLATE static u32 FASTCALL OP_B(const u32 i)
 	if(last == mov_r12_r12)
 	{
 		const u32 next = _MMU_read16<PROCNUM,MMU_AT_DEBUG>(cpu->instruct_adr+4);
-		if(next == 0x6464)
-			NocashMessage(cpu, 8);
 	}
 
 	u32 off = SIGNEXTEND_24(i);
@@ -5136,8 +5133,6 @@ TEMPLATE static u32 FASTCALL  OP_LDMIB2(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	u32 * registres;
 
-	UNTESTEDOPCODELOG("Untested opcode: OP_LDMIB2 \n");
-
 	if(BIT15(i)==0)
 	{  
 		if((cpu->CPSR.bits.mode==USR)||(cpu->CPSR.bits.mode==SYS)) { printf("ERROR1\n"); return 1; }
@@ -5191,8 +5186,6 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA2(const u32 i)
 	u32 * registres;
 	
 	u32 start = cpu->R[REG_POS(i,16)];
-
-	UNTESTEDOPCODELOG("Untested opcode: OP_LDMDA2 \n");
 
 	if(BIT15(i)==0)
 	{  
@@ -5698,8 +5691,6 @@ TEMPLATE static u32 FASTCALL  OP_STMIA2(const u32 i)
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);
 
-	UNTESTEDOPCODELOG("Untested opcode: OP_STMIA2 \n");
-
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, b))
@@ -5727,8 +5718,6 @@ TEMPLATE static u32 FASTCALL  OP_STMIB2(const u32 i)
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);
 	
-	UNTESTEDOPCODELOG("Untested opcode: OP_STMIB2 \n");
-	
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, b))
@@ -5755,9 +5744,7 @@ TEMPLATE static u32 FASTCALL  OP_STMDA2(const u32 i)
 	c = 0;
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);	
-	
-	UNTESTEDOPCODELOG("Untested opcode: OP_STMDA2 \n");  
-	
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
@@ -5811,8 +5798,6 @@ TEMPLATE static u32 FASTCALL  OP_STMIA2_W(const u32 i)
 	c=0;
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);
-	
-	UNTESTEDOPCODELOG("Untested opcode: OP_STMIA2_W \n");
 	
 	for(b=0; b<16; b++)
 	{
@@ -5870,8 +5855,6 @@ TEMPLATE static u32 FASTCALL  OP_STMDA2_W(const u32 i)
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);
 
-	 UNTESTEDOPCODELOG("Untested opcode: OP_STMDA2_W \n");
-	
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
@@ -5901,8 +5884,6 @@ TEMPLATE static u32 FASTCALL  OP_STMDB2_W(const u32 i)
 	
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);
-
-	UNTESTEDOPCODELOG("Untested opcode: OP_STMDB2_W \n");   
 
 	for(b=0; b<16; b++)
 	{
@@ -6121,8 +6102,6 @@ TEMPLATE static u32 FASTCALL  OP_MCR(const u32 i)
 	{
 		//emu_halt();
 		//INFO("Stopped (OP_MCR) \n");
-		INFO("ARM%c: MCR P%i, 0, R%i, C%i, C%i, %i, %i (don't allocated coprocessor)\n", 
-			PROCNUM?'7':'9', cpnum, REG_POS(i, 12), REG_POS(i, 16), REG_POS(i, 0), (i>>21)&0x7, (i>>5)&0x7);
 		return 2;
 	}
 
@@ -6141,8 +6120,6 @@ TEMPLATE static u32 FASTCALL  OP_MRC(const u32 i)
 	{
 		//emu_halt();
 		//INFO("Stopped (OP_MRC) \n");
-		INFO("ARM%c: MRC P%i, 0, R%i, C%i, C%i, %i, %i (don't allocated coprocessor)\n", 
-			PROCNUM?'7':'9', cpnum, REG_POS(i, 12), REG_POS(i, 16), REG_POS(i, 0), (i>>21)&0x7, (i>>5)&0x7);
 		return 2;
 	}
 
@@ -6180,11 +6157,11 @@ TEMPLATE static u32 FASTCALL  OP_SWI(const u32 i)
 	u32 swinum = (i>>16)&0xFF;
 
 	//ideas-style debug prints (execute this SWI with the null terminated string address in R0)
-	if(swinum==0xFC) 
+	/*if(swinum==0xFC) 
 	{
 		IdeasLog(cpu);
 		return 0;
-	}
+	}*/
 
 	//if the user has changed the intVector to point away from the nds bioses,
 	//then it doesn't really make any sense to use the builtin SWI's since 

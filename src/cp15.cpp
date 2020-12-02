@@ -20,7 +20,6 @@
 
 #include "armcpu.h"
 #include "cp15.h"
-#include "debug.h"
 #include "MMU.h"
 #include "emufile.h"
 #include "readwrite.h"
@@ -196,19 +195,19 @@ BOOL armcp15_t::isAccessAllowed(u32 address,u32 access)
 
 BOOL armcp15_t::dataProcess(u8 CRd, u8 CRn, u8 CRm, u8 opcode1, u8 opcode2)
 {
-	LOG("Unsupported CP15 operation : DataProcess\n");
+	//LOG("Unsupported CP15 operation : DataProcess\n");
 	return FALSE;
 }
 
 BOOL armcp15_t::load(u8 CRd, u8 adr)
 {
-	LOG("Unsupported CP15 operation : Load\n");
+	//LOG("Unsupported CP15 operation : Load\n");
 	return FALSE;
 }
 
 BOOL armcp15_t::store(u8 CRd, u8 adr)
 {
-	LOG("Unsupported CP15 operation : Store\n");
+	//LOG("Unsupported CP15 operation : Store\n");
 	return FALSE;
 }
 
@@ -327,7 +326,7 @@ BOOL armcp15_t::moveCP2ARM(u32 * R, u8 CRn, u8 CRm, u8 opcode1, u8 opcode2)
 		}
 		return FALSE;
 	default:
-		LOG("Unsupported CP15 operation : MRC\n");
+		//LOG("Unsupported CP15 operation : MRC\n");
 		return FALSE;
 	}
 }

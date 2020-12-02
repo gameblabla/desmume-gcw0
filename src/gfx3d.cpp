@@ -30,6 +30,8 @@
 
 #include "gfx3d.h"
 
+#include "common.h"
+
 #include <assert.h>
 #include <math.h>
 #include <string.h>
@@ -37,7 +39,6 @@
 #include <queue>
 
 #include "armcpu.h"
-#include "debug.h"
 #include "driver.h"
 #include "emufile.h"
 #include "matrix.h"
@@ -50,7 +51,6 @@
 #include "NDSSystem.h"
 #include "readwrite.h"
 #include "FIFO.h"
-#include "movie.h" //only for currframecounter which really ought to be moved into the core emu....
 
 //#define _SHOW_VTX_COUNTERS	// show polygon/vertex counters on screen
 #ifdef _SHOW_VTX_COUNTERS
@@ -1376,10 +1376,6 @@ static void gfx3d_glVertex_rel(s32 v)
 
 static void gfx3d_glPolygonAttrib (u32 val)
 {
-	if(inBegin) {
-		//PROGINFO("Set polyattr in the middle of a begin/end pair.\n  (This won't be activated until the next begin)\n");
-		//TODO - we need some some similar checking for teximageparam etc.
-	}
 	polyAttrPending = val;
 	GFX_DELAY(1);
 }
@@ -2019,7 +2015,6 @@ static void gfx3d_execute(u8 cmd, u32 param)
 			gfx3d_glVecTest(param);
 		break;
 		default:
-			INFO("Unknown execute FIFO 3D command 0x%02X with param 0x%08X\n", cmd, param);
 		break;
 	}
 }
@@ -2348,7 +2343,6 @@ void gfx3d_sendCommand(u32 cmd, u32 param)
 			GFX_FIFOsend(cmd, param);
 		break;
 		default:
-			INFO("Unknown 3D command %03X with param 0x%08X (directport)\n", cmd, param);
 			break;
 	}
 }

@@ -28,11 +28,9 @@
 
 #include "MMU.h"
 #include "FIFO.h"
-#include "debug.h"
 #include "render3D.h"
 #include "registers.h"
 #include "gfx3d.h"
-#include "debug.h"
 #include "NDSSystem.h"
 #include "readwrite.h"
 #include "matrix.h"
@@ -315,7 +313,6 @@ FORCEINLINE u16 GPU::blend(u16 colA, u16 colB)
 void GPU_setMasterBrightness (GPU *gpu, u16 val)
 {
 	if(!nds.isInVblank()) {
-		PROGINFO("Changing master brightness outside of vblank\n");
 	}
  	gpu->MasterBrightFactor = (val & 0x1F);
 	gpu->MasterBrightMode	= (val>>14);
@@ -921,7 +918,6 @@ FORCEINLINE static void mosaicSpriteLine(GPU * gpu, u16 l, u8 * dst, u8 * dst_al
 template<bool MOSAIC> void lineLarge8bpp(GPU * gpu)
 {
 	if(gpu->core == 1) {
-		PROGINFO("Cannot use large 8bpp screen on sub core\n");
 		return;
 	}
 
@@ -2736,7 +2732,6 @@ template<bool MOSAIC> void GPU::modeRender(int layer)
 		case BGType_AffineExt: lineExtRot<MOSAIC>(this); break;
 		case BGType_Large8bpp: lineExtRot<MOSAIC>(this); break;
 		case BGType_Invalid: 
-			PROGINFO("Attempting to render an invalid BG type\n");
 			break;
 		default:
 			break;

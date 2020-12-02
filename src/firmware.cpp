@@ -21,7 +21,6 @@
 #include "MMU.h"
 #include "path.h"
 #include "encrypt.h"
-#include "wifi.h"
 
 #define DFC_ID_CODE	"DeSmuME Firmware User Settings"
 #define DFC_ID_SIZE	sizeof(DFC_ID_CODE)
@@ -329,7 +328,7 @@ bool CFIRMWARE::unpack()
 
 	if (size == 512*1024)
 	{
-		INFO("ERROR: 32Mbit (512Kb) firmware not supported\n");
+		//INFO("ERROR: 32Mbit (512Kb) firmware not supported\n");
 		return false;
 	}
 
@@ -394,7 +393,7 @@ bool CFIRMWARE::unpack()
 
 	if (crc16_mine != header.part12_boot_crc16)
 	{
-		INFO("Firmware: ERROR: the boot code CRC16 (0x%04X) doesn't match the value in the firmware header (0x%04X)", crc16_mine, header.part12_boot_crc16);
+		//INFO("Firmware: ERROR: the boot code CRC16 (0x%04X) doesn't match the value in the firmware header (0x%04X)", crc16_mine, header.part12_boot_crc16);
 		delete [] tmp_data9;
 		delete [] tmp_data7;
 		delete [] data; data = NULL;
@@ -422,7 +421,7 @@ bool CFIRMWARE::unpack()
 	if (data[0x17C] != 0xFF)
 		patched = true;
 
-	INFO("Firmware:\n");
+	/*INFO("Firmware:\n");
 	INFO("- path: %s\n", CommonSettings.Firmware);
 	INFO("- size: %i bytes (%i Mbit)\n", size, size/1024/8);
 	INFO("- CRC : 0x%04X\n", header.part12_boot_crc16);
@@ -438,7 +437,7 @@ bool CFIRMWARE::unpack()
 	INFO("   * ARM7 WiFi code address:     0x%08X\n", part4addr);
 	INFO("   * ARM7 unpacked size:         0x%08X (%i) bytes\n", size7, size7);
 	INFO("\n");
-	INFO("   * Data/GFX address:           0x%08X\n", part5addr);
+	INFO("   * Data/GFX address:           0x%08X\n", part5addr);*/
 
 	if (patched)
 	{
@@ -493,7 +492,7 @@ bool CFIRMWARE::unpack()
 		delete [] tmp_data7;
 		delete [] tmp_data9;
 
-		INFO("\nFlashme:\n");
+		/*INFO("\nFlashme:\n");
 		INFO("- header: \n");
 		INFO("   * ARM9 boot code address:     0x%08X\n", part1addr);
 		INFO("   * ARM9 boot code RAM address: 0x%08X\n", ARM9bootAddr);
@@ -501,7 +500,7 @@ bool CFIRMWARE::unpack()
 		INFO("\n");
 		INFO("   * ARM7 boot code address:     0x%08X\n", part2addr);
 		INFO("   * ARM7 boot code RAM address: 0x%08X\n", ARM7bootAddr);
-		INFO("   * ARM7 unpacked size:         0x%08X (%i) bytes\n", size7, size7);
+		INFO("   * ARM7 unpacked size:         0x%08X (%i) bytes\n", size7, size7);*/
 	}
 
 	memcpy(MMU.fw.data, data, size);
@@ -850,9 +849,6 @@ int NDS_CreateDummyFirmware(NDS_fw_config_data *user_settings)
 	//Wifi version
 	MMU.fw.data[0x2F] = 0x00;
 
-	//MAC address
-	memcpy((MMU.fw.data + 0x36), FW_Mac, sizeof(FW_Mac));
-
 	//Enabled channels
 	MMU.fw.data[0x3C] = 0xFE;
 	MMU.fw.data[0x3D] = 0x3F;
@@ -867,28 +863,7 @@ int NDS_CreateDummyFirmware(NDS_fw_config_data *user_settings)
 
 	MMU.fw.data[0x43] = 0x01;
 
-	//Wifi I/O init values
-	memcpy((MMU.fw.data + 0x44), FW_WIFIInit, sizeof(FW_WIFIInit));
-
-	//Wifi BB init values
-	memcpy((MMU.fw.data + 0x64), FW_BBInit, sizeof(FW_BBInit));
-
-	//Wifi RF init values
-	memcpy((MMU.fw.data + 0xCE), FW_RFInit, sizeof(FW_RFInit));
-
-	//Wifi channel-related init values
-	memcpy((MMU.fw.data + 0xF2), FW_RFChannel, sizeof(FW_RFChannel));
-	memcpy((MMU.fw.data + 0x146), FW_BBChannel, sizeof(FW_BBChannel));
 	memset((MMU.fw.data + 0x154), 0x10, 0xE);
-
-	//WFC profiles
-	memcpy((MMU.fw.data + 0x3FA40), &FW_WFCProfile1, sizeof(FW_WFCProfile));
-	memcpy((MMU.fw.data + 0x3FB40), &FW_WFCProfile2, sizeof(FW_WFCProfile));
-	memcpy((MMU.fw.data + 0x3FC40), &FW_WFCProfile3, sizeof(FW_WFCProfile));
-	(*(u16*)(MMU.fw.data + 0x3FAFE)) = (u16)calc_CRC16(0, (MMU.fw.data + 0x3FA00), 0xFE);
-	(*(u16*)(MMU.fw.data + 0x3FBFE)) = (u16)calc_CRC16(0, (MMU.fw.data + 0x3FB00), 0xFE);
-	(*(u16*)(MMU.fw.data + 0x3FCFE)) = (u16)calc_CRC16(0, (MMU.fw.data + 0x3FC00), 0xFE);
-
 
 	MMU.fw.data[0x162] = 0x19;
 	memset((MMU.fw.data + 0x163), 0xFF, 0x9D);
@@ -956,11 +931,6 @@ void NDS_FillDefaultFirmwareConfigData(NDS_fw_config_data *fw_config) {
 	//fw_config->touch_cal[1].screen_y = 0xA0;
 }
 
-void NDS_PatchFirmwareMAC()
-{
-	memcpy((MMU.fw.data + 0x36), FW_Mac, sizeof(FW_Mac));
-	(*(u16*)(MMU.fw.data + 0x2A)) = calc_CRC16(0, (MMU.fw.data + 0x2C), 0x138);
-}
 
 //=========================
 //- firmware SPI chip interface -

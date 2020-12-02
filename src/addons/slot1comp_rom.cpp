@@ -73,7 +73,6 @@ u32 Slot1Comp_Rom::read()
 			//3. this is better: it just allows us to read 0xFF anywhere we dont have rom data. forget what the header says
 			if(address+4 > gameInfo.romsize)
 			{
-				DEBUG_Notify.ReadBeyondEndOfCart(address,gameInfo.romsize);
 				return 0xFFFFFFFF;
 			}
 

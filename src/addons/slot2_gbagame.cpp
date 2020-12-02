@@ -20,7 +20,6 @@
 
 #include <string.h>
 
-#include "../debug.h"
 #include "../NDSSystem.h"
 #include "../path.h"
 #include "../emufile.h"
@@ -279,7 +278,7 @@ private:
 			gbaFlash.cmd = 0;
 			return;
 		}
-		INFO("GBAgame: Flash: write unknown atn 0x%08X = 0x%02X\n", adr, val);
+		//INFO("GBAgame: Flash: write unknown atn 0x%08X = 0x%02X\n", adr, val);
 	}
 
 	u8 gbaReadFlash(u32 adr)
@@ -306,7 +305,7 @@ private:
 			break;
 
 			default:
-				INFO("GBAgame: Flash: read - unknown command at 0x%08X = 0x%02X\n", adr, gbaFlash.cmd);
+				//INFO("GBAgame: Flash: read - unknown command at 0x%08X = 0x%02X\n", adr, gbaFlash.cmd);
 			break;
 		}
 

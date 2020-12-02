@@ -92,7 +92,6 @@ public:
 int copy_firmware_user_data( u8 *dest_buffer, const u8 *fw_data);
 int NDS_CreateDummyFirmware(NDS_fw_config_data *user_settings);
 void NDS_FillDefaultFirmwareConfigData(NDS_fw_config_data *fw_config);
-void NDS_PatchFirmwareMAC();
 
 struct fw_memory_chip
 {

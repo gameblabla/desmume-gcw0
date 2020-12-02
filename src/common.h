@@ -31,6 +31,8 @@
 	#define sscanf_s sscanf
 #endif
 
+extern int currFrameCounter;
+
 template<typename T>
 T reverseBits(T x)
 {

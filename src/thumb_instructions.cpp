@@ -20,10 +20,7 @@
 #include "armcpu.h"
 #include "instructions.h"
 
-#include <assert.h>
-
 #include "bios.h"
-#include "debug.h"
 #include "MMU.h"
 #include "NDSSystem.h"
 #include "MMU_timing.h"
@@ -38,7 +35,7 @@
 //-----------------------------------------------------------------------------
 TEMPLATE static  u32 FASTCALL OP_UND_THUMB(const u32 i)
 {
-	INFO("THUMB%c: Undefined instruction: 0x%08X (%s) PC=0x%08X\n", cpu->proc_ID?'7':'9', cpu->instruction, decodeIntruction(true, cpu->instruction), cpu->instruct_adr);
+	//INFO("THUMB%c: Undefined instruction: 0x%08X (%s) PC=0x%08X\n", cpu->proc_ID?'7':'9', cpu->instruction, decodeIntruction(true, cpu->instruction), cpu->instruct_adr);
 	TRAPUNDEF(cpu);
 	return 1;
 }
@@ -1015,10 +1012,10 @@ TEMPLATE static  u32 FASTCALL OP_SWI_THUMB(const u32 i)
 	u32 swinum = i & 0xFF;
 
 	//ideas-style debug prints (execute this SWI with the null terminated string address in R0)
-	if(swinum==0xFC) {
+	/*if(swinum==0xFC) {
 		IdeasLog(cpu);
 		return 0;
-	}
+	}*/
 
 	//if the user has changed the intVector to point away from the nds bioses,
 	//then it doesn't really make any sense to use the builtin SWI's since 
@@ -1074,11 +1071,6 @@ TEMPLATE static  u32 FASTCALL OP_B_UNCOND(const u32 i)
 	//nocash message detection
 	const u16 last = _MMU_read16<PROCNUM,MMU_AT_DEBUG>(cpu->instruct_adr-2);
 	const u16 next = _MMU_read16<PROCNUM,MMU_AT_DEBUG>(cpu->instruct_adr+2);
-	static const u16 mov_r12_r12 = 0x46E4;
-	if(last == mov_r12_r12 && next == 0x6464)
-	{
-		NocashMessage(cpu,6);
-	}
 
 	cpu->R[15] += (SIGNEEXT_IMM11(i)<<1);
 	cpu->next_instruction = cpu->R[15];

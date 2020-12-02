@@ -22,7 +22,6 @@
 #include <string.h>
 
 #include "armcpu.h"
-#include "debug.h"
 #include "mem.h"
 #include "MMU.h"
 #include "registers.h"

@@ -41,16 +41,15 @@
 #include "cp15.h"
 #include "GPU.h"
 #include "version.h"
+#include "datetime.h"
 
 #include "readwrite.h"
 #include "gfx3d.h"
-#include "movie.h"
 #include "mic.h"
 #include "MMU_timing.h"
 #include "slot1.h"
 #include "slot2.h"
 #include "SPU.h"
-#include "wifi.h"
 
 #include "path.h"
 
@@ -296,83 +295,6 @@ SFORMAT SF_MMU[]={
 SFORMAT SF_MOVIE[]={
 	{ "FRAC", 4, 1, &currFrameCounter},
 	{ "LAGC", 4, 1, &TotalLagFrames},
-	{ 0 }
-};
-
-// TODO: integrate the new wifi state variables once everything is settled
-SFORMAT SF_WIFI[]={
-	{ "W000", 4, 1, &wifiMac.powerOn},
-	{ "W010", 4, 1, &wifiMac.powerOnPending},
-
-	{ "W020", 2, 1, &wifiMac.rfStatus},
-	{ "W030", 2, 1, &wifiMac.rfPins},
-
-	{ "W040", 2, 1, &wifiMac.IE},
-	{ "W050", 2, 1, &wifiMac.IF},
-
-	{ "W060", 2, 1, &wifiMac.macMode},
-	{ "W070", 2, 1, &wifiMac.wepMode},
-	{ "W080", 4, 1, &wifiMac.WEP_enable},
-
-	{ "W100", 2, 1, &wifiMac.TXCnt},
-	{ "W120", 2, 1, &wifiMac.TXStat},
-
-	{ "W200", 2, 1, &wifiMac.RXCnt},
-	{ "W210", 2, 1, &wifiMac.RXCheckCounter},
-
-	{ "W220", 1, 6, &wifiMac.mac.bytes},
-	{ "W230", 1, 6, &wifiMac.bss.bytes},
-
-	{ "W240", 2, 1, &wifiMac.aid},
-	{ "W250", 2, 1, &wifiMac.pid},
-	{ "W260", 2, 1, &wifiMac.retryLimit},
-
-	{ "W270", 4, 1, &wifiMac.crystalEnabled},
-	{ "W280", 8, 1, &wifiMac.usec},
-	{ "W290", 4, 1, &wifiMac.usecEnable},
-	{ "W300", 8, 1, &wifiMac.ucmp},
-	{ "W310", 4, 1, &wifiMac.ucmpEnable},
-	{ "W320", 2, 1, &wifiMac.eCount},
-	{ "W330", 4, 1, &wifiMac.eCountEnable},
-
-	{ "WR00", 4, 1, &wifiMac.RF.CFG1.val},
-	{ "WR01", 4, 1, &wifiMac.RF.IFPLL1.val},
-	{ "WR02", 4, 1, &wifiMac.RF.IFPLL2.val},
-	{ "WR03", 4, 1, &wifiMac.RF.IFPLL3.val},
-	{ "WR04", 4, 1, &wifiMac.RF.RFPLL1.val},
-	{ "WR05", 4, 1, &wifiMac.RF.RFPLL2.val},
-	{ "WR06", 4, 1, &wifiMac.RF.RFPLL3.val},
-	{ "WR07", 4, 1, &wifiMac.RF.RFPLL4.val},
-	{ "WR08", 4, 1, &wifiMac.RF.CAL1.val},
-	{ "WR09", 4, 1, &wifiMac.RF.TXRX1.val},
-	{ "WR10", 4, 1, &wifiMac.RF.PCNT1.val},
-	{ "WR11", 4, 1, &wifiMac.RF.PCNT2.val},
-	{ "WR12", 4, 1, &wifiMac.RF.VCOT1.val},
-
-	{ "W340", 1, 105, &wifiMac.BB.data[0]},
-
-	{ "W350", 2, 1, &wifiMac.rfIOCnt.val},
-	{ "W360", 2, 1, &wifiMac.rfIOStatus.val},
-	{ "W370", 4, 1, &wifiMac.rfIOData.val},
-	{ "W380", 2, 1, &wifiMac.bbIOCnt.val},
-
-	{ "W400", 2, 0x1000, &wifiMac.RAM[0]},
-	{ "W410", 2, 1, &wifiMac.RXRangeBegin},
-	{ "W420", 2, 1, &wifiMac.RXRangeEnd},
-	{ "W430", 2, 1, &wifiMac.RXWriteCursor},
-	{ "W460", 2, 1, &wifiMac.RXReadCursor},
-	{ "W470", 2, 1, &wifiMac.RXUnits},
-	{ "W480", 2, 1, &wifiMac.RXBufCount},
-	{ "W490", 2, 1, &wifiMac.CircBufReadAddress},
-	{ "W500", 2, 1, &wifiMac.CircBufWriteAddress},
-	{ "W510", 2, 1, &wifiMac.CircBufRdEnd},
-	{ "W520", 2, 1, &wifiMac.CircBufRdSkip},
-	{ "W530", 2, 1, &wifiMac.CircBufWrEnd},
-	{ "W540", 2, 1, &wifiMac.CircBufWrSkip},
-
-	{ "W580", 2, 0x800, &wifiMac.IOPorts[0]},
-	{ "W590", 2, 1, &wifiMac.randomSeed},
-
 	{ 0 }
 };
 
@@ -1038,8 +960,6 @@ static void writechunks(EMUFILE* os) {
 	savestate_WriteChunk(os,90,SF_GFX3D);
 	savestate_WriteChunk(os,91,gfx3d_savestate);
 	savestate_WriteChunk(os,100,SF_MOVIE);
-	savestate_WriteChunk(os,101,mov_savestate);
-	savestate_WriteChunk(os,110,SF_WIFI);
 	savestate_WriteChunk(os,120,SF_RTC);
 	savestate_WriteChunk(os,130,SF_NDS_INFO);
 	savestate_WriteChunk(os,140,s_slot1_savestate);
@@ -1099,8 +1019,6 @@ static bool ReadStateChunks(EMUFILE* is, s32 totalsize)
 			case 90: if(!ReadStateChunk(is,SF_GFX3D,size)) ret=false; break;
 			case 91: if(!gfx3d_loadstate(is,size)) ret=false; break;
 			case 100: if(!ReadStateChunk(is,SF_MOVIE, size)) ret=false; break;
-			case 101: if(!mov_loadstate(is, size)) ret=false; break;
-			case 110: if(!ReadStateChunk(is,SF_WIFI,size)) ret=false; break;
 			case 120: if(!ReadStateChunk(is,SF_RTC,size)) ret=false; break;
 			case 130: if(!ReadStateChunk(is,SF_INFO,size)) ret=false; else haveInfo=true; break;
 			case 140: if(!s_slot1_loadstate(is, size)) ret=false; break;
@@ -1230,10 +1148,7 @@ bool savestate_load(EMUFILE* is)
 	//while the series of resets below should work,
 	//we are testing the robustness of the savestate system with this full reset.
 	//the full reset wipes more things, so we can make sure that they are being restored correctly
-	extern bool _HACK_DONT_STOPMOVIE;
-	_HACK_DONT_STOPMOVIE = true;
 	NDS_Reset();
-	_HACK_DONT_STOPMOVIE = false;
 
 	//reset some options to their old defaults which werent saved
 	nds._DebugConsole = FALSE;

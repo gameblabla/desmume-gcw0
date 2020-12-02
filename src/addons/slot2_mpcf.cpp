@@ -24,7 +24,6 @@
 #include <stdlib.h>
 
 #include "../slot2.h"
-#include "../debug.h"
 #include "../emufile.h"
 #include "../path.h"
 #include "../utils/vfat.h"
@@ -73,22 +72,22 @@ static BOOL cflash_init()
 	if (inited) return FALSE;
 	BOOL init_good = FALSE;
 
-	CFLASHLOG("CFlash_Mode: %d\n",CFlash_Mode);
+	//CFLASHLOG("CFlash_Mode: %d\n",CFlash_Mode);
 
 	if (CFlash_Mode == ADDON_CFLASH_MODE_RomPath)
 	{
 		sFlashPath = path.RomDirectory;
-		INFO("Using CFlash directory of rom: %s\n", sFlashPath.c_str());
+		//INFO("Using CFlash directory of rom: %s\n", sFlashPath.c_str());
 	}
 	else if(CFlash_Mode == ADDON_CFLASH_MODE_Path)
 	{
 		sFlashPath = CFlash_Path;
-		INFO("Using CFlash directory: %s\n", sFlashPath.c_str());
+		//INFO("Using CFlash directory: %s\n", sFlashPath.c_str());
 	}
 	else if(CFlash_Mode == ADDON_CFLASH_MODE_File)
 	{
 		sFlashPath = CFlash_Path;
-		INFO("Using CFlash disk image file %s\n", sFlashPath.c_str());
+		//INFO("Using CFlash disk image file %s\n", sFlashPath.c_str());
 	}
 	else
 	{
@@ -109,7 +108,7 @@ static BOOL cflash_init()
 
 		if(!ret)
 		{
-			CFLASHLOG("FAILED cflash_build_fat\n");
+			//CFLASHLOG("FAILED cflash_build_fat\n");
 			return FALSE;
 		}
 
@@ -125,7 +124,7 @@ static BOOL cflash_init()
 		file = new EMUFILE_FILE(sFlashPath.c_str(),"rb+");
 		if(file->fail())
 		{
-			INFO("Failed to open file %s\n", sFlashPath.c_str());
+			//INFO("Failed to open file %s\n", sFlashPath.c_str());
 			delete file;
 			file = NULL;
 		}
@@ -200,7 +199,7 @@ static void cflash_write(unsigned int address,unsigned int data)
 
 					if (sector_write_index == 512) 
 					{
-						CFLASHLOG( "Write sector to %ld\n", currLBA);
+						//CFLASHLOG( "Write sector to %ld\n", currLBA);
 						size_t written = 0;
 
 						if(file) 
@@ -218,7 +217,7 @@ static void cflash_write(unsigned int address,unsigned int data)
 								}
 							}
 
-						CFLASHLOG("Wrote %u bytes\n", written);
+						//CFLASHLOG("Wrote %u bytes\n", written);
 					
 						currLBA += 512;
 						sector_write_index = 0;

@@ -23,7 +23,6 @@
 #include "types.h"
 #include "SPU.h"
 #include "sndsdl.h"
-#include "debug.h"
 
 #ifdef _XBOX
 #include <xtl.h>

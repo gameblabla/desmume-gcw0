@@ -24,8 +24,6 @@
 
 #include "common.h"
 #include "armcpu.h"
-#include "debug.h"
-#include "movie.h"
 #include "MMU.h"
 #include "readwrite.h"
 #include "NDSSystem.h"

@@ -26,8 +26,6 @@
 #include "instructions.h"
 #include "cp15.h"
 #include "bios.h"
-#include "debug.h"
-#include "Disassembler.h"
 #include "NDSSystem.h"
 #include "MMU_timing.h"
 #ifdef HAVE_LUA
@@ -570,7 +568,7 @@ BOOL armcpu_irqException(armcpu_t *armcpu)
 
 u32 TRAPUNDEF(armcpu_t* cpu)
 {
-	INFO("ARM%c: Undefined instruction: 0x%08X (%s) PC=0x%08X\n", cpu->proc_ID?'7':'9', cpu->instruction, decodeIntruction(false, cpu->instruction), cpu->instruct_adr);
+	//INFO("ARM%c: Undefined instruction: 0x%08X (%s) PC=0x%08X\n", cpu->proc_ID?'7':'9', cpu->instruction, decodeIntruction(false, cpu->instruction), cpu->instruct_adr);
 
 	if (((cpu->intVector != 0) ^ (cpu->proc_ID == ARMCPU_ARM9)))
 	{

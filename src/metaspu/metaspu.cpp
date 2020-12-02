@@ -54,11 +54,7 @@ public:
 	ZeromusSynchronizer()
 		: mixqueue_go(false)
 		,
-		#ifdef NDEBUG
 		adjustobuf(200,1000)
-		#else
-		adjustobuf(22000,44000)
-		#endif
 	{
 
 	}

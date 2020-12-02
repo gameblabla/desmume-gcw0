@@ -25,11 +25,8 @@
 
 #include "armcpu.h"
 #include "common.h"
-#include "debug.h"
 #include "driver.h"
 #include "NDSSystem.h"
-#include "cp15.h"
-#include "wifi.h"
 #include "registers.h"
 #include "render3D.h"
 #include "FIFO.h"
@@ -39,7 +36,6 @@
 #include "slot1.h"
 #include "slot2.h"
 #include "mic.h"
-#include "movie.h"
 #include "readwrite.h"
 #include "MMU_timing.h"
 #include "firmware.h"
@@ -457,7 +453,7 @@ static FORCEINLINE u32 MMU_LCDmap(u32 addr, bool& unmapped, bool& restricted)
 }
 
 
-#define LOG_VRAM_ERROR() LOG("No data for block %i MST %i\n", block, VRAMBankCnt & 0x07);
+#define LOG_VRAM_ERROR() ()
 
 VramConfiguration vramConfiguration;
 
@@ -537,7 +533,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 			case 0: //LCDC
 				vramConfiguration.banks[bank].purpose = VramConfiguration::LCDC;
 				MMU_vram_lcdc(bank);
-				if(ofs != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 				break;
 			case 1: //ABG
 				vramConfiguration.banks[bank].purpose = VramConfiguration::ABG;
@@ -551,8 +546,8 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 					MMU_vram_arm9(bank,VRAM_PAGE_AOBJ+ofs*8);
 					break;
 				default:
-					PROGINFO("Unsupported ofs setting %d for engine A OBJ vram bank %c\n", ofs, 'A'+bank);
-				}
+				break;
+					}
 				break;
 			case 3: //texture
 				vramConfiguration.banks[bank].purpose = VramConfiguration::TEX;
@@ -571,7 +566,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 			case 0: //LCDC
 				vramConfiguration.banks[bank].purpose = VramConfiguration::LCDC;
 				MMU_vram_lcdc(bank);
-				if(ofs != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 				break;
 			case 1: //ABG
 				vramConfiguration.banks[bank].purpose = VramConfiguration::ABG;
@@ -588,7 +582,7 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 					vram_arm7_map[ofs] = vram_bank_info[bank].page_addr;
 					break;
 				default:
-					PROGINFO("Unsupported ofs setting %d for arm7 vram bank %c\n", ofs, 'A'+bank);
+				break;
 				}
 
 				break;
@@ -604,7 +598,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 					vramConfiguration.banks[bank].purpose = VramConfiguration::BOBJ;
 					MMU_vram_arm9(bank,VRAM_PAGE_BOBJ); //BOBJ
 				}
-				if(ofs != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 				break;
 			default: goto unsupported_mst;
 			}
@@ -612,7 +605,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 
 		case VRAM_BANK_E:
 			mst = VRAMBankCnt & 7;
-			if(((VRAMBankCnt>>3)&3) != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 			switch(mst) {
 			case 0: //LCDC
 				vramConfiguration.banks[bank].purpose = VramConfiguration::LCDC;
@@ -655,7 +647,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 			case 0: //LCDC
 				vramConfiguration.banks[bank].purpose = VramConfiguration::LCDC;
 				MMU_vram_lcdc(bank);
-				if(ofs != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 				break;
 			case 1: //ABG
 				vramConfiguration.banks[bank].purpose = VramConfiguration::ABG;
@@ -681,7 +672,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 					break;
 				default:
 					vramConfiguration.banks[bank].purpose = VramConfiguration::INVALID;
-					PROGINFO("Unsupported ofs setting %d for engine A bgextpal vram bank %c\n", ofs, 'A'+bank);
 					break;
 				}
 				break;
@@ -689,7 +679,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 				vramConfiguration.banks[bank].purpose = VramConfiguration::AOBJEXTPAL;
 				MMU.ObjExtPal[0][0] = MMU_vram_physical(vram_bank_info[bank].page_addr);
 				MMU.ObjExtPal[0][1] = MMU.ObjExtPal[0][1] + ADDRESS_STEP_8KB;
-				if(ofs != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 				break;
 			default: goto unsupported_mst;
 			}
@@ -698,7 +687,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 
 		case VRAM_BANK_H:
 			mst = VRAMBankCnt & 3;
-			if(((VRAMBankCnt>>3)&3) != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 			switch(mst)
 			{
 			case 0: //LCDC
@@ -723,7 +711,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 
 		case VRAM_BANK_I:
 			mst = VRAMBankCnt & 3;
-			if(((VRAMBankCnt>>3)&3) != 0) PROGINFO("Bank %i: MST %i OFS %i\n", mst, ofs);
 			switch(mst)
 			{
 			case 0: //LCDC
@@ -758,7 +745,6 @@ static inline void MMU_VRAMmapRefreshBank(const int bank)
 
 unsupported_mst:
 	vramConfiguration.banks[bank].purpose = VramConfiguration::INVALID;
-	PROGINFO("Unsupported mst setting %d for vram bank %c\n", mst, 'A'+bank);
 }
 
 void MMU_VRAM_unmap_all()
@@ -909,7 +895,6 @@ static inline void MMU_VRAMmapControl(u8 block, u8 VRAMBankCnt)
 
 void MMU_Init(void)
 {
-	LOG("MMU init\n");
 
 	memset(&MMU, 0, sizeof(MMU_struct));
 
@@ -933,15 +918,15 @@ void MMU_Init(void)
 	
 	slot1_Init();
 	slot2_Init();
-	
-	if(Mic_Init() == FALSE)
+	Mic_Init();
+		
+	/*if(Mic_Init() == FALSE)
 		INFO("Microphone init failed.\n");
 	else
-		INFO("Microphone successfully inited.\n");
+		INFO("Microphone successfully inited.\n");*/
 } 
 
 void MMU_DeInit(void) {
-	LOG("MMU deinit\n");
 	if (MMU.fw.fp)
 		fclose(MMU.fw.fp);
 	mc_free(&MMU.fw);      
@@ -1120,10 +1105,6 @@ static void execdiv() {
 		mod = num % den;
 	}
 
-	DIVLOG("DIV %08X%08X / %08X%08X = %08X%08X\r\n", (u32)(num>>32), (u32)num, 
-							(u32)(den>>32), (u32)den, 
-							(u32)(res>>32), (u32)res);
-
 	T1WriteLong(MMU.MMU_MEM[ARMCPU_ARM9][0x40], 0x2A0, 0);
 	T1WriteLong(MMU.MMU_MEM[ARMCPU_ARM9][0x40], 0x2A4, 0);
 	T1WriteLong(MMU.MMU_MEM[ARMCPU_ARM9][0x40], 0x2A8, 0);
@@ -1266,7 +1247,7 @@ void MMU_GC_endTransfer(u32 PROCNUM)
 
 void GC_Command::print()
 {
-	GCLOG("%02X%02X%02X%02X%02X%02X%02X%02X\n",bytes[0],bytes[1],bytes[2],bytes[3],bytes[4],bytes[5],bytes[6],bytes[7]);
+	//GCLOG("%02X%02X%02X%02X%02X%02X%02X%02X\n",bytes[0],bytes[1],bytes[2],bytes[3],bytes[4],bytes[5],bytes[6],bytes[7]);
 }
 
 void GC_Command::toCryptoBuffer(u32 buf[2])
@@ -1294,7 +1275,7 @@ void FASTCALL MMU_writeToGCControl(u32 val)
 
 	int dbsize = (val>>24)&7;
 	static int gcctr=0;
-	GCLOG("[GC] [%07d] GCControl: %08X (dbsize:%d)\n",gcctr,val,dbsize);
+	//GCLOG("[GC] [%07d] GCControl: %08X (dbsize:%d)\n",gcctr,val,dbsize);
 	gcctr++;
 	
 	GCBUS_Controller& card = MMU.dscard[PROCNUM];
@@ -1332,7 +1313,7 @@ void FASTCALL MMU_writeToGCControl(u32 val)
 	//the command is transferred to the GC during the next 8 clocks
 	if(start)
 	{
-		GCLOG("[GC] command:"); rawcmd.print();
+		//GCLOG("[GC] command:"); rawcmd.print();
 		slot1_device->write_command(PROCNUM, rawcmd);
 
 		/*INFO("WRITE: %02X%02X%02X%02X%02X%02X%02X%02X ", 
@@ -1345,7 +1326,7 @@ void FASTCALL MMU_writeToGCControl(u32 val)
 	else
 	{
 		T1WriteLong(MMU.MMU_MEM[PROCNUM][0x40], 0x1A4, val & 0x7F7FFFFF);
-		GCLOG("SCUTTLE????\n");
+		//GCLOG("SCUTTLE????\n");
 		return;
 	}
 
@@ -4905,14 +4886,6 @@ void FASTCALL _MMU_ARM7_write16(u32 adr, u16 val)
 		return;
 	}
 
-	//wifi mac access
-	if ((adr & 0xFFFF0000) == 0x04800000)
-	{
-		WIFI_write16(adr,val);
-		T1WriteWord(MMU.MMU_MEM[ARMCPU_ARM7][0x48], adr&MMU.MMU_MASK[ARMCPU_ARM7][0x48], val);
-		return;
-	}
-
 	// Address is an IO register
 	if ((adr >> 24) == 4)
 	{
@@ -5086,14 +5059,6 @@ void FASTCALL _MMU_ARM7_write32(u32 adr, u32 val)
 		return;
 	}
 
-	if ((adr & 0xFFFF0000) == 0x04800000)
-	{
-		WIFI_write16(adr, val & 0xFFFF);
-		WIFI_write16(adr+2, val >> 16);
-		T1WriteLong(MMU.MMU_MEM[ARMCPU_ARM7][0x48], adr&MMU.MMU_MASK[ARMCPU_ARM7][0x48], val);
-		return;
-	}
-
 	// Address is an IO register
 	if ((adr >> 24) == 4)
 	{
@@ -5188,15 +5153,6 @@ u8 FASTCALL _MMU_ARM7_read08(u32 adr)
 			return 0xFF;
 	}
 
-	// wifi mac access 
-	if ((adr & 0xFFFF0000) == 0x04800000)
-	{
-		if (adr & 1)
-			return (WIFI_read16(adr-1) >> 8) & 0xFF;
-		else
-			return WIFI_read16(adr) & 0xFF;
-	}
-
 	u8 slot2_val;
 	if (slot2_read<ARMCPU_ARM7, u8>(adr, slot2_val))
 		return slot2_val;
@@ -5248,10 +5204,6 @@ u16 FASTCALL _MMU_ARM7_read16(u32 adr)
 		if (NDS_ARM7.instruct_adr > 0x3FFF)
 			return 0xFFFF;
 	}
-
-	//wifi mac access
-	if ((adr & 0xFFFF0000) == 0x04800000)
-		return WIFI_read16(adr) ;
 
 	u16 slot2_val;
 	if (slot2_read<ARMCPU_ARM7, u16>(adr, slot2_val))
@@ -5348,10 +5300,6 @@ u32 FASTCALL _MMU_ARM7_read32(u32 adr)
 		if (NDS_ARM7.instruct_adr > 0x3FFF)
 			return 0xFFFFFFFF;
 	}
-
-	//wifi mac access
-	if ((adr & 0xFFFF0000) == 0x04800000)
-		return (WIFI_read16(adr) | (WIFI_read16(adr+2) << 16));
 
 	u32 slot2_val;
 	if (slot2_read<ARMCPU_ARM7, u32>(adr, slot2_val))

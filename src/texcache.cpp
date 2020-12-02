@@ -26,7 +26,6 @@
 
 #include "bits.h"
 #include "common.h"
-#include "debug.h"
 #include "gfx3d.h"
 #include "MMU.h"
 #include "NDSSystem.h"
@@ -146,11 +145,6 @@ static MemSpan MemSpan_TexMem(u32 ofs, u32 len)
 		ofs += curr.len;
 		currofs += curr.len;
 		u8* ptr = MMU.texInfo.textureSlotAddr[slot];
-		
-		//TODO - dont alert if the masterbrightnesses are max or min
-		if(ptr == MMU.blank_memory) {
-			PROGINFO("Tried to reference unmapped texture memory: slot %d\n",slot);
-		}
 		curr.ptr = ptr + curr.start;
 	}
 	return ret;
@@ -167,7 +161,6 @@ static MemSpan MemSpan_TexPalette(u32 ofs, u32 len, bool silent)
 		curr.start = ofs&0x3FFF;
 		u32 slot = (ofs>>14)&7; //this masks to 8 slots, but there are really only 6
 		if(slot>5 && !silent) {
-			PROGINFO("Texture palette overruns texture memory. Wrapping at palette slot 0.\n");
 			slot -= 5;
 		}
 		curr.len = min(len,0x4000-curr.start);
@@ -178,11 +171,6 @@ static MemSpan MemSpan_TexPalette(u32 ofs, u32 len, bool silent)
 			//here is an actual test case of bank spanning
 		currofs += curr.len;
 		u8* ptr = MMU.texInfo.texPalSlot[slot];
-		
-		//TODO - dont alert if the masterbrightnesses are max or min
-		if(ptr == MMU.blank_memory && !silent) {
-			PROGINFO("Tried to reference unmapped texture palette memory: 16k slot #%d\n",slot);
-		}
 		curr.ptr = ptr + curr.start;
 	}
 	return ret;
@@ -488,9 +476,6 @@ public:
 			break;
 		case TEXMODE_4X4:
 			{
-				if(ms.numItems != 1) {
-					PROGINFO("Your 4x4 texture has overrun its texture slot.\n");
-				}
 				//this check isnt necessary since the addressing is tied to the texture data which will also run out:
 				//if(msIndex.numItems != 1) PROGINFO("Your 4x4 texture index has overrun its slot.\n");
 

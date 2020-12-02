@@ -17,7 +17,6 @@
 
 #include "driver.h"
 
-#include "debug.h"
 #include "rasterize.h"
 #include "gfx3d.h"
 #include "texcache.h"
@@ -47,6 +46,5 @@ BaseDriver::~BaseDriver()
 
 void BaseDriver::USR_InfoMessage(const char *message)
 {
-	LOG("%s\n", message);
 }
 

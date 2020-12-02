@@ -38,14 +38,9 @@
 #include "GPU.h"
 #include "cp15.h"
 #include "bios.h"
-#include "debug.h"
-#include "cheatSystem.h"
-#include "movie.h"
-#include "Disassembler.h"
 #include "FIFO.h"
 #include "readwrite.h"
 #include "registers.h"
-#include "debug.h"
 #include "driver.h"
 #include "firmware.h"
 #include "version.h"
@@ -53,7 +48,6 @@
 #include "slot1.h"
 #include "slot2.h"
 #include "SPU.h"
-#include "wifi.h"
 
 #ifdef GDB_STUB
 #include "gdbstub.h"
@@ -66,6 +60,9 @@
 bool dolog = false;
 //#define LOG_TO_FILE
 //#define LOG_TO_FILE_REGS
+
+
+int currFrameCounter;
 
 //===============================================================
 FILE *fp_dis7 = NULL;
@@ -176,10 +173,6 @@ int NDS_Init()
 	if (SPU_Init(SNDCORE_DUMMY, 740) != 0)
 		return -1;
 
-	WIFI_Init() ;
-
-	cheats = new CHEATS();
-	cheatSearch = new CHEATSEARCH();
 
 	return 0;
 }
@@ -191,14 +184,6 @@ void NDS_DeInit(void)
 	Screen_DeInit();
 	MMU_DeInit();
 	gpu3D->NDS_3D_Close();
-
-	WIFI_DeInit();
-	
-	delete cheats;
-	cheats = NULL;
-	
-	delete cheatSearch;
-	cheatSearch = NULL;
 
 #ifdef HAVE_JIT
 	arm_jit_close();
@@ -625,10 +610,6 @@ int NDS_LoadROM(const char *filename, const char *physicalName, const char *logi
 	if (ret < 1)
 		return ret;
 
-	if (cheatSearch)
-		cheatSearch->close();
-	FCEUI_StopMovie();
-
 
 	//check whether this rom is any kind of valid
 	if(!CheckValidRom((u8*)&gameInfo.header, gameInfo.secureArea))
@@ -666,7 +647,7 @@ int NDS_LoadROM(const char *filename, const char *physicalName, const char *logi
 		gameInfo.chipID |= (0x00 << 24);
 	}
 
-	INFO("\nROM game code: %c%c%c%c\n", gameInfo.header.gameCode[0], gameInfo.header.gameCode[1], gameInfo.header.gameCode[2], gameInfo.header.gameCode[3]);
+	/*INFO("\nROM game code: %c%c%c%c\n", gameInfo.header.gameCode[0], gameInfo.header.gameCode[1], gameInfo.header.gameCode[2], gameInfo.header.gameCode[3]);
 	if (gameInfo.crc)
 		INFO("ROM crc: %08X\n", gameInfo.crc);
 	if (!gameInfo.isHomebrew())
@@ -676,7 +657,7 @@ int NDS_LoadROM(const char *filename, const char *physicalName, const char *logi
 		INFO("ROM internal name: %s\n", gameInfo.ROMname);
 		if (gameInfo.isDSiEnhanced()) INFO("ROM DSi Enhanced\n");
 	}
-	INFO("ROM developer: %s\n", ((gameInfo.header.makerCode == 0) && gameInfo.isHomebrew())?"Homebrew":getDeveloperNameByID(gameInfo.header.makerCode).c_str());
+	INFO("ROM developer: %s\n", ((gameInfo.header.makerCode == 0) && gameInfo.isHomebrew())?"Homebrew":getDeveloperNameByID(gameInfo.header.makerCode).c_str());*/
 
 	buf[0] = gameInfo.header.gameCode[0];
 	buf[1] = gameInfo.header.gameCode[1];
@@ -717,14 +698,6 @@ int NDS_LoadROM(const char *filename, const char *physicalName, const char *logi
 
 	}
 
-	if (cheats != NULL)
-	{
-		memset(buf, 0, MAX_PATH);
-		path.getpathnoext(path.CHEATS, buf);
-		strcat(buf, ".dct");						// DeSmuME cheat		:)
-		cheats->init(buf);
-	}
-
 	NDS_Reset();
 
 	return ret;
@@ -732,7 +705,6 @@ int NDS_LoadROM(const char *filename, const char *physicalName, const char *logi
 
 void NDS_FreeROM(void)
 {
-	FCEUI_StopMovie();
 	gameInfo.closeROM();
 }
 
@@ -957,11 +929,6 @@ template<int procnum, int num> struct TSequenceItem_Timer : public TSequenceItem
 					nds.timerCycle[procnum][i] += (remain << MMU.timerMODE[procnum][i]);
 					ctr++;
 				}
-#ifndef NDEBUG
-				if(ctr>1) {
-					printf("yikes!!!!! please report!\n");
-				}
-#endif
 			}
 
 			if(over)
@@ -1228,14 +1195,6 @@ void Sequencer::init()
 	dma_1_1.controller = &MMU_new.dma[1][1];
 	dma_1_2.controller = &MMU_new.dma[1][2];
 	dma_1_3.controller = &MMU_new.dma[1][3];
-
-
-	#ifdef EXPERIMENTAL_WIFI_COMM
-	wifi.enabled = true;
-	wifi.timestamp = kWifiCycles;
-	#else
-	wifi.enabled = false;
-	#endif
 }
 
 //this isnt helping much right now. work on it later
@@ -1524,10 +1483,6 @@ u64 Sequencer::findNext()
 	if(sqrtunit.isEnabled()) next = _fast_min(next,sqrtunit.next());
 	if(gxfifo.enabled) next = _fast_min(next,gxfifo.next());
 
-#ifdef EXPERIMENTAL_WIFI_COMM
-	next = _fast_min(next,wifi.next());
-#endif
-
 #define test(X,Y) if(dma_##X##_##Y .isEnabled()) next = _fast_min(next,dma_##X##_##Y .next());
 	test(0,0); test(0,1); test(0,2); test(0,3);
 	test(1,0); test(1,1); test(1,2); test(1,3);
@@ -1582,13 +1537,6 @@ void Sequencer::execHardware()
 		}
 	}
 
-#ifdef EXPERIMENTAL_WIFI_COMM
-	if(wifi.isTriggered())
-	{
-		WIFI_usTrigger();
-		wifi.timestamp += kWifiCycles;
-	}
-#endif
 	
 	if(divider.isTriggered()) divider.exec();
 	if(sqrtunit.isTriggered()) sqrtunit.exec();
@@ -1648,79 +1596,6 @@ bool nds_loadstate(EMUFILE* is, int size)
 	return temp;
 }
 
-FORCEINLINE void arm9log()
-{
-#ifdef LOG_ARM9
-	if(dolog)
-	{
-		char dasmbuf[4096];
-		if(NDS_ARM9.CPSR.bits.T)
-			des_thumb_instructions_set[((NDS_ARM9.instruction)>>6)&1023](NDS_ARM9.instruct_adr, NDS_ARM9.instruction, dasmbuf);
-		else
-			des_arm_instructions_set[INDEX(NDS_ARM9.instruction)](NDS_ARM9.instruct_adr, NDS_ARM9.instruction, dasmbuf);
-
-#ifdef LOG_TO_FILE
-		if (!fp_dis9) return;
-#ifdef LOG_TO_FILE_REGS
-		fprintf(fp_dis9, "\t\t;%05d:%03d %12lld\n\t\t;R0:%08X R1:%08X R2:%08X R3:%08X R4:%08X R5:%08X R6:%08X R7:%08X R8:%08X R9:%08X\n\t\t;R10:%08X R11:%08X R12:%08X R13:%08X R14:%08X R15:%08X| next %08X, N:%i Z:%i C:%i V:%i\n",
-			currFrameCounter, nds.VCount, nds_timer,
-			NDS_ARM9.R[0],  NDS_ARM9.R[1],  NDS_ARM9.R[2],  NDS_ARM9.R[3],  NDS_ARM9.R[4],  NDS_ARM9.R[5],  NDS_ARM9.R[6],  NDS_ARM9.R[7], 
-			NDS_ARM9.R[8],  NDS_ARM9.R[9],  NDS_ARM9.R[10],  NDS_ARM9.R[11],  NDS_ARM9.R[12],  NDS_ARM9.R[13],  NDS_ARM9.R[14],  NDS_ARM9.R[15],
-			NDS_ARM9.next_instruction, NDS_ARM9.CPSR.bits.N, NDS_ARM9.CPSR.bits.Z, NDS_ARM9.CPSR.bits.C, NDS_ARM9.CPSR.bits.V);
-#endif
-		fprintf(fp_dis9, "%s %08X\t%08X \t%s\n", NDS_ARM9.CPSR.bits.T?"THUMB":"ARM", NDS_ARM9.instruct_adr, NDS_ARM9.instruction, dasmbuf);
-		/*if (NDS_ARM9.instruction == 0)
-		{
-			dolog = false;
-			INFO("Disassembler is stopped\n");
-		}*/
-#else
-		printf("%05d:%03d %12lld 9:%08X %08X %-30s R00:%08X R01:%08X R02:%08X R03:%08X R04:%08X R05:%08X R06:%08X R07:%08X R08:%08X R09:%08X R10:%08X R11:%08X R12:%08X R13:%08X R14:%08X R15:%08X\n",
-			currFrameCounter, nds.VCount, nds_timer, 
-			NDS_ARM9.instruct_adr,NDS_ARM9.instruction, dasmbuf, 
-			NDS_ARM9.R[0],  NDS_ARM9.R[1],  NDS_ARM9.R[2],  NDS_ARM9.R[3],  NDS_ARM9.R[4],  NDS_ARM9.R[5],  NDS_ARM9.R[6],  NDS_ARM9.R[7], 
-			NDS_ARM9.R[8],  NDS_ARM9.R[9],  NDS_ARM9.R[10],  NDS_ARM9.R[11],  NDS_ARM9.R[12],  NDS_ARM9.R[13],  NDS_ARM9.R[14],  NDS_ARM9.R[15]);  
-#endif
-	}
-#endif
-}
-
-FORCEINLINE void arm7log()
-{
-#ifdef LOG_ARM7
-	if(dolog)
-	{
-		char dasmbuf[4096];
-		if(NDS_ARM7.CPSR.bits.T)
-			des_thumb_instructions_set[((NDS_ARM7.instruction)>>6)&1023](NDS_ARM7.instruct_adr, NDS_ARM7.instruction, dasmbuf);
-		else
-			des_arm_instructions_set[INDEX(NDS_ARM7.instruction)](NDS_ARM7.instruct_adr, NDS_ARM7.instruction, dasmbuf);
-#ifdef LOG_TO_FILE
-		if (!fp_dis7) return;
-#ifdef LOG_TO_FILE_REGS
-		fprintf(fp_dis7, "\t\t;%05d:%03d %12lld\n\t\t;R0:%08X R1:%08X R2:%08X R3:%08X R4:%08X R5:%08X R6:%08X R7:%08X R8:%08X R9:%08X\n\t\t;R10:%08X R11:%08X R12:%08X R13:%08X R14:%08X R15:%08X| next %08X, N:%i Z:%i C:%i V:%i\n",
-			currFrameCounter, nds.VCount, nds_timer, 
-			NDS_ARM7.R[0],  NDS_ARM7.R[1],  NDS_ARM7.R[2],  NDS_ARM7.R[3],  NDS_ARM7.R[4],  NDS_ARM7.R[5],  NDS_ARM7.R[6],  NDS_ARM7.R[7], 
-			NDS_ARM7.R[8],  NDS_ARM7.R[9],  NDS_ARM7.R[10],  NDS_ARM7.R[11],  NDS_ARM7.R[12],  NDS_ARM7.R[13],  NDS_ARM7.R[14],  NDS_ARM7.R[15],
-			NDS_ARM7.next_instruction, NDS_ARM7.CPSR.bits.N, NDS_ARM7.CPSR.bits.Z, NDS_ARM7.CPSR.bits.C, NDS_ARM7.CPSR.bits.V);
-#endif
-		fprintf(fp_dis7, "%s %08X\t%08X \t%s\n", NDS_ARM7.CPSR.bits.T?"THUMB":"ARM", NDS_ARM7.instruct_adr, NDS_ARM7.instruction, dasmbuf);
-		/*if (NDS_ARM7.instruction == 0)
-		{
-			dolog = false;
-			INFO("Disassembler is stopped\n");
-		}*/
-#else		
-		printf("%05d:%03d %12lld 7:%08X %08X %-30s R00:%08X R01:%08X R02:%08X R03:%08X R04:%08X R05:%08X R06:%08X R07:%08X R08:%08X R09:%08X R10:%08X R11:%08X R12:%08X R13:%08X R14:%08X R15:%08X\n",
-			currFrameCounter, nds.VCount, nds_timer, 
-			NDS_ARM7.instruct_adr,NDS_ARM7.instruction, dasmbuf, 
-			NDS_ARM7.R[0],  NDS_ARM7.R[1],  NDS_ARM7.R[2],  NDS_ARM7.R[3],  NDS_ARM7.R[4],  NDS_ARM7.R[5],  NDS_ARM7.R[6],  NDS_ARM7.R[7], 
-			NDS_ARM7.R[8],  NDS_ARM7.R[9],  NDS_ARM7.R[10],  NDS_ARM7.R[11],  NDS_ARM7.R[12],  NDS_ARM7.R[13],  NDS_ARM7.R[14],  NDS_ARM7.R[15]);
-#endif
-	}
-#endif
-}
-
 //these have not been tuned very well yet.
 static const int kMaxWork = 4000;
 static const int kIrqWait = 4000;
@@ -1753,8 +1628,6 @@ static /*donotinline*/ std::pair<s32,s32> armInnerLoop(
 		{
 			if(!NDS_ARM9.waitIRQ&&!nds.freezeBus)
 			{
-				arm9log();
-				debug();
 #ifdef HAVE_JIT
 				arm9 += armcpu_exec<ARMCPU_ARM9,jit>();
 #else
@@ -1776,7 +1649,6 @@ static /*donotinline*/ std::pair<s32,s32> armInnerLoop(
 		{
 			if(!NDS_ARM7.waitIRQ&&!nds.freezeBus)
 			{
-				arm7log();
 #ifdef HAVE_JIT
 				arm7 += (armcpu_exec<ARMCPU_ARM7,jit>()<<1);
 #else
@@ -1936,11 +1808,6 @@ void NDS_exec(s32 nb)
 			nds_arm7_timer = nds_timer_base+arm7;
 			nds_arm9_timer = nds_timer_base+arm9;
 
-#ifndef NDEBUG
-			//what we find here is dependent on the timing constants above
-			//if(nds_timer>next && (nds_timer-next)>22)
-			//	printf("curious. please report: over by %d\n",(int)(nds_timer-next));
-#endif
 
 			//if we were waiting for an irq, don't wait too long:
 			//let's re-analyze it after this hardware event (this rolls back a big burst of irq waiting which may have been interrupted by a resynch)
@@ -1972,10 +1839,6 @@ void NDS_exec(s32 nb)
 		lagframecounter = 0;
 	}
 	currFrameCounter++;
-	DEBUG_Notify.NextFrame();
-	if (cheats)
-		cheats->process();
-
         #ifdef GDB_STUB
         gdbstub_mutex_unlock();
         #endif
@@ -2042,7 +1905,7 @@ static void PrepareBiosARM7()
 
 	if(NDS_ARM7.BIOS_loaded)
 	{
-		INFO("ARM7 BIOS load: %s.\n", NDS_ARM7.BIOS_loaded?"OK":"FAILED");
+		//INFO("ARM7 BIOS load: %s.\n", NDS_ARM7.BIOS_loaded?"OK":"FAILED");
 	}
 	else
 	{
@@ -2097,7 +1960,7 @@ static void PrepareBiosARM9()
 
 	if(NDS_ARM9.BIOS_loaded) 
 	{
-		INFO("ARM9 BIOS load: %s.\n", NDS_ARM9.BIOS_loaded?"OK":"FAILED");
+		//INFO("ARM9 BIOS load: %s.\n", NDS_ARM9.BIOS_loaded?"OK":"FAILED");
 	} 
 	else 
 	{
@@ -2418,21 +2281,9 @@ bool NDS_FakeBoot()
 	return true;
 }
 
-bool _HACK_DONT_STOPMOVIE = false;
 void NDS_Reset()
 {
 	PrepareLogfiles();
-
-	if(movieMode != MOVIEMODE_INACTIVE && !_HACK_DONT_STOPMOVIE)
-		movie_reset_command = true;
-
-	if(movieMode == MOVIEMODE_INACTIVE) {
-		currFrameCounter = 0;
-		lagframecounter = 0;
-		LagFrameFlag = 0;
-		lastLag = 0;
-		TotalLagFrames = 0;
-	}
 
 	resetUserInput();
 
@@ -2510,9 +2361,6 @@ void NDS_Reset()
 	Screen_Reset();
 	gfx3d_reset();
 	gpu3D->NDS_3D_Reset();
-
-	WIFI_Reset();
-	memcpy(FW_Mac, (MMU.fw.data + 0x36), 6);
 
 	SPU_DeInit();
 	SPU_ReInit(!canBootFromFirmware && bootResult);
@@ -2675,7 +2523,7 @@ void NDS_setTouchPos(u16 x, u16 y)
 	rawUserInput.touch.touchY = y<<4;
 	rawUserInput.touch.isTouch = true;
 
-	if(movieMode != MOVIEMODE_INACTIVE && movieMode != MOVIEMODE_FINISHED)
+	/*if(movieMode != MOVIEMODE_INACTIVE && movieMode != MOVIEMODE_FINISHED)
 	{
 		// just in case, since the movie only stores 8 bits per touch coord
 #ifdef WORDS_BIGENDIAN
@@ -2685,7 +2533,7 @@ void NDS_setTouchPos(u16 x, u16 y)
 		rawUserInput.touch.touchX &= 0x0FF0;
 		rawUserInput.touch.touchY &= 0x0FF0;
 #endif
-	}
+	}*/
 }
 void NDS_releaseTouch(void)
 { 
