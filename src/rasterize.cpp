@@ -1038,12 +1038,17 @@ public:
 
 static SoftRasterizerEngine mainSoftRasterizer;
 
+#ifdef MULTITHREADING
+#define _MAX_CORES 1
+#else
 #define _MAX_CORES 16
+#endif
 static Task rasterizerUnitTask[_MAX_CORES];
 static RasterizerUnit<true> rasterizerUnit[_MAX_CORES];
 static RasterizerUnit<false> _HACK_viewer_rasterizerUnit;
 static unsigned int rasterizerCores = 0;
 static bool rasterizerUnitTasksInited = false;
+
 
 static void* execRasterizerUnit(void* arg)
 {
@@ -1067,11 +1072,16 @@ static char SoftRastInit(void)
 		_HACK_viewer_rasterizerUnit.SLI_MASK = 1;
 		_HACK_viewer_rasterizerUnit.SLI_VALUE = 0;
 
+#ifdef MULTITHREADING
+		rasterizerCores = 1;
+		rasterizerUnit[0].SLI_MASK = 0;
+		rasterizerUnit[0].SLI_VALUE = 0;
+#else
 		rasterizerCores = CommonSettings.num_cores;
 
 		if (rasterizerCores > _MAX_CORES) 
 			rasterizerCores = _MAX_CORES;
-
+			
 		if(CommonSettings.num_cores == 1)
 		{
 			rasterizerCores = 1;
@@ -1087,7 +1097,7 @@ static char SoftRastInit(void)
 				rasterizerUnitTask[i].start(false);
 			}
 		}
-
+#endif
 	}
 
 	static bool tables_generated = false;
@@ -1122,12 +1132,15 @@ static char SoftRastInit(void)
 
 	TexCache_Reset();
 
+#ifdef MULTITHREADING
 	printf("SoftRast Initialized with cores=%d\n",rasterizerCores);
+#endif
 	return result;
 }
 
 static void SoftRastReset()
 {
+#ifdef MULTITHREADING
 	if (rasterizerCores > 1)
 	{
 		for(unsigned int i = 0; i < rasterizerCores; i++)
@@ -1135,7 +1148,7 @@ static void SoftRastReset()
 			rasterizerUnitTask[i].finish();
 		}
 	}
-	
+#endif
 	softRastHasNewData = false;
 	
 	Default3D_Reset();
@@ -1143,6 +1156,7 @@ static void SoftRastReset()
 
 static void SoftRastClose()
 {
+#ifdef MULTITHREADING
 	if (rasterizerCores > 1)
 	{
 		for(unsigned int i = 0; i < rasterizerCores; i++)
@@ -1151,7 +1165,7 @@ static void SoftRastClose()
 			rasterizerUnitTask[i].shutdown();
 		}
 	}
-	
+#endif
 	rasterizerUnitTasksInited = false;
 	softRastHasNewData = false;
 	
@@ -1596,6 +1610,7 @@ void _HACK_Viewer_ExecUnit(SoftRasterizerEngine* engine)
 
 static void SoftRastRender()
 {
+#ifdef MULTITHREADING
 	// Force threads to finish before rendering with new data
 	if (rasterizerCores > 1)
 	{
@@ -1604,7 +1619,7 @@ static void SoftRastRender()
 			rasterizerUnitTask[i].finish();
 		}
 	}
-	
+#endif
 	mainSoftRasterizer.polylist = gfx3d.polylist;
 	mainSoftRasterizer.vertlist = gfx3d.vertlist;
 	mainSoftRasterizer.indexlist = &gfx3d.indexlist;
@@ -1628,6 +1643,7 @@ static void SoftRastRender()
 
 	softRastHasNewData = true;
 	
+#ifdef MULTITHREADING
 	if (rasterizerCores > 1)
 	{
 		for(unsigned int i = 0; i < rasterizerCores; i++)
@@ -1636,6 +1652,7 @@ static void SoftRastRender()
 		}
 	}
 	else
+#endif
 	{
 		rasterizerUnit[0].mainLoop<false>(&mainSoftRasterizer);
 	}
@@ -1648,6 +1665,7 @@ static void SoftRastRenderFinish()
 		return;
 	}
 	
+#ifdef MULTITHREADING
 	if (rasterizerCores > 1)
 	{
 		for(unsigned int i = 0; i < rasterizerCores; i++)
@@ -1655,7 +1673,7 @@ static void SoftRastRenderFinish()
 			rasterizerUnitTask[i].finish();
 		}
 	}
-	
+#endif
 	TexCache_EvictFrame();
 	
 	mainSoftRasterizer.framebufferProcess();
