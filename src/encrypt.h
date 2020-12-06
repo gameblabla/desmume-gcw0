@@ -24,8 +24,6 @@ struct _KEY1
 {
 	_KEY1(const u8 *inKeyBufPtr)
 	{
-		if (keyBuf) delete keyBuf;
-		keyBuf = new u32 [0x412];
 		memset(keyBuf, 0x00, 0x412 * sizeof(u32));
 		memset(&keyCode[0], 0, sizeof(keyCode));
 		this->keyBufPtr = inKeyBufPtr;
@@ -33,14 +31,9 @@ struct _KEY1
 
 	~_KEY1()
 	{
-		if (keyBuf) 
-		{
-			delete keyBuf;
-			keyBuf = NULL;
-		}
 	}
 
-	u32 *keyBuf;
+	u32 keyBuf[0x412];
 	u32 keyCode[3];
 	const u8	*keyBufPtr;
 
