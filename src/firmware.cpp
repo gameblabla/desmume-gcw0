@@ -34,6 +34,8 @@
 
 static _KEY1	enc(&MMU.ARM7_BIOS[0x0030]);
 
+const u8 FW_Mac[6] 	= { 0x00, 0x09, 0xBF, 0x12, 0x34, 0x56 };
+
 u16 CFIRMWARE::getBootCodeCRC16()
 {
 	unsigned int i, j;
@@ -848,6 +850,10 @@ int NDS_CreateDummyFirmware(NDS_fw_config_data *user_settings)
 
 	//Wifi version
 	MMU.fw.data[0x2F] = 0x00;
+	
+	//MAC address
+	/* Needed for Megaman Zero Collection otherwise we will get corrupted graphics */
+	memcpy((MMU.fw.data + 0x36), FW_Mac, sizeof(FW_Mac));
 
 	//Enabled channels
 	MMU.fw.data[0x3C] = 0xFE;
