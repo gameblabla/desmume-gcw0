@@ -65,7 +65,7 @@ u16 keypad = 0;
 #define FPS_LIMITER_FPS 60
 
 SDL_Surface * surface;
-static SDL_Surface * *rl_sf;
+static SDL_Surface *rl_sf;
 
 SoundInterface_struct *SNDCoreList[] = {
   &SNDSDL,
@@ -133,13 +133,11 @@ static void Draw( void)
 	dstrect.y = 0;
 	dstrect.w = 160;
 	dstrect.h = 240;*/
-	SDL_BlitSurface(rl_sf, NULL, surface, &srcrect);
+	SDL_BlitSurface(surface, NULL, rl_sf, &srcrect);
+	SDL_Flip(rl_sf);
 #else
-	//surface->pixels = (uint8_t*)GPU_screen;
-	//memcpy(surface->pixels, GPU_screen, (256*384)*2);
-	//SDL_BlitSurface(rl_sf, 0, surface, 0);
-#endif
 	SDL_Flip(surface);
+#endif
 	return;
 }
 
@@ -191,8 +189,8 @@ int main(int argc, char ** argv) {
 	SDL_WM_SetCaption("Desmume SDL", NULL);
 	SDL_ShowCursor(0);
 #ifdef GKD350H
-	surface = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
-	rl_sf = SDL_CreateRGBSurfaceFrom((void*)&GPU_screen, 256, 384, 16, 512, 0x001F, 0x03E0, 0x7C00, 0);
+	rl_sf = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
+	surface = SDL_CreateRGBSurface(SDL_HWSURFACE, 256, 384, 16, 0x001F, 0x03E0, 0x7C00, 0);
 #else
 	surface = SDL_SetVideoMode(256, 384, 15, SDL_HWSURFACE | SDL_TRIPLEBUF | SDL_SWIZZLEBGR);
     //rl_sf = SDL_CreateRGBSurfaceFrom((void*)&GPU_screen, 256, 384, 16, 512, 0x001F, 0x03E0, 0x7C00, 0);
