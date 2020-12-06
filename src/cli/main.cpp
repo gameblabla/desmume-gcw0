@@ -31,6 +31,8 @@
 #define CLI_UI
 #endif
 
+#include "scalers.h"
+
 #include "../NDSSystem.h"
 #include "../driver.h"
 #include "../GPU.h"
@@ -45,7 +47,12 @@
 
 volatile bool execute = false;
 
+#ifdef GKD350H
+float nds_screen_size_ratio = 0.625f;
+#else
 float nds_screen_size_ratio = 1.0f;
+#endif
+
 u16 keypad = 0;
 
 //#define DISPLAY_FPS
@@ -116,6 +123,7 @@ const u16 cli_kb_cfg[NB_KEYS] =
 uint32_t frameskip = 9;
 uint32_t sdl_quit = 0;
 
+
 /* Preferably this should draw directly to the surface.
  * I need to test whenever this will draw properly in BGR mode.
  * TODO - Gameblabla
@@ -123,17 +131,17 @@ uint32_t sdl_quit = 0;
 static void Draw( void)
 {
 #ifdef GKD350H
-	SDL_Rect srcrect;
+	/*SDL_Rect srcrect;
 	srcrect.x = 32;
 	srcrect.y = 0;
 	srcrect.w = 256;
-	srcrect.h = 240;
+	srcrect.h = 240;*/
 	/*SDL_Rect dstrect;
 	dstrect.x = 80;
 	dstrect.y = 0;
 	dstrect.w = 160;
 	dstrect.h = 240;*/
-	SDL_BlitSurface(surface, NULL, rl_sf, &srcrect);
+	scale_256x384_to_160x240((uint32_t*)rl_sf->pixels, (uint32_t*)surface->pixels);
 	SDL_Flip(rl_sf);
 #else
 	SDL_Flip(surface);

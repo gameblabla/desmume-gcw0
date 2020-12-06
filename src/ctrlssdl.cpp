@@ -32,7 +32,13 @@ u16 nbr_joy;
 mouse_status mouse;
 
 extern float nds_screen_size_ratio;
-extern float nds_screen_size_ratio;
+#ifdef GKD350H
+const uint32_t touch_width = 160;
+const uint32_t touch_height = 120;
+#else
+const uint32_t touch_width = 256;
+const uint32_t touch_height = 192;
+#endif
 
 static SDL_Joystick **open_joysticks = NULL;
 
@@ -219,10 +225,22 @@ screen_to_touch_range( signed long scr, float size_ratio) {
 /* Set mouse coordinates */
 static void set_mouse_coord(signed long x,signed long y)
 {
+#ifdef GKD350H
+	/* WIP, not working yet */
+	extern SDL_Surface* surface;
+	if(x<0) x = 0; else if(x>255) x = 255;
+	if(y<0) y = 0; else if(y>192) y = 192;
+	
+	int newx = (x) / 256;
+	int newy = (y) / 192;
+	mouse.x = newx;
+	mouse.y = newy;
+#else
 	if(x<0) x = 0; else if(x>255) x = 255;
 	if(y<0) y = 0; else if(y>192) y = 192;
 	mouse.x = x;
 	mouse.y = y;
+#endif
 }
 
 // Adapted from Windows port
@@ -451,9 +469,13 @@ process_ctrls_event( SDL_Event& event, u16* keypad)
 					signed long scaled_y =
 						screen_to_touch_range( event.button.y,
 										nds_screen_size_ratio);
-
+#ifdef GKD350H
+					if( scaled_y >= 120 && (scaled_x > 80 || scaled_x < 240))
+						set_mouse_coord( scaled_x + 80, scaled_y - 120);
+#else
 					if( scaled_y >= 192)
 						set_mouse_coord( scaled_x, scaled_y - 192);
+#endif
 				}
 				break;
 				case SDL_MOUSEBUTTONUP:
