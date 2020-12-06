@@ -819,6 +819,7 @@ static void REG_DISPx_pack_test(GPU * gpu)
 #include <SDL/SDL.h>
 extern SDL_Surface* surface;
 #define GPU_screen (u8*)surface->pixels
+#define SIZE_OF_GPU_SCREEN (256*384)*2
 
 
 GPU * GPU_Init(u8 l);

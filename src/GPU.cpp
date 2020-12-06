@@ -1865,7 +1865,7 @@ int Screen_Init()
 	MainScreen.gpu = GPU_Init(0);
 	SubScreen.gpu = GPU_Init(1);
 
-	memset(GPU_screen, 0, sizeof(GPU_screen));
+	memset(GPU_screen, 0, SIZE_OF_GPU_SCREEN);
 	for(int i = 0; i < (256*192*2); i++)
 		((u16*)GPU_screen)[i] = 0x7FFF;
 	disp_fifo.head = disp_fifo.tail = 0;
@@ -1883,7 +1883,7 @@ void Screen_Reset(void)
 	MainScreen.offset = 0;
 	SubScreen.offset = 192;
 
-	memset(GPU_screen, 0, sizeof(GPU_screen));
+	memset(GPU_screen, 0, SIZE_OF_GPU_SCREEN);
 	for(int i = 0; i < (256*192*2); i++)
 		((u16*)GPU_screen)[i] = 0x7FFF;
 
@@ -2613,7 +2613,7 @@ void gpu_savestate(EMUFILE* os)
 	//version
 	write32le(1,os);
 	
-	os->fwrite((char*)GPU_screen,sizeof(GPU_screen));
+	os->fwrite((char*)GPU_screen,SIZE_OF_GPU_SCREEN);
 	
 	write32le(MainScreen.gpu->affineInfo[0].x,os);
 	write32le(MainScreen.gpu->affineInfo[0].y,os);
@@ -2644,7 +2644,7 @@ bool gpu_loadstate(EMUFILE* is, int size)
 
 	if(version<0||version>1) return false;
 
-	is->fread((char*)GPU_screen,sizeof(GPU_screen));
+	is->fread((char*)GPU_screen,SIZE_OF_GPU_SCREEN);
 
 	if(version==1)
 	{
