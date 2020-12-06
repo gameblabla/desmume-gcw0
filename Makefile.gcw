@@ -2,12 +2,12 @@
 CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
 
 PRGNAME     = desmume.elf
-PROFILE		= NO
+PROFILE		= 0
 HUGE_PAGES	= 0
 
 # change compilation / linking flag options
-CXXFLAGS		= -Wall -Wextra -mlong32 -mno-xgot -Ofast -fdata-sections -ffunction-sections -fsection-anchors -fno-builtin -mplt -mframe-header-opt -mno-fp-exceptions -mno-check-zero-division -fsingle-precision-constant -fno-common -march=mips32r2 -mtune=mips32r2 -flto -fno-PIC -mno-shared
-CXXFLAGS		+= $(INCLUDES) $(DEFINES) -fno-math-errno -fgcse-las -fgcse-sm -fmerge-all-constants -fno-ident -fno-stack-protector
+CXXFLAGS		= -Ofast -fdata-sections -ffunction-sections -fsection-anchors -fno-builtin -mplt -mframe-header-opt -mno-fp-exceptions -mno-check-zero-division -fsingle-precision-constant -fno-common -march=mips32r2 -mtune=mips32r2 -flto -fno-PIC -mno-shared
+CXXFLAGS		+= $(INCLUDES) $(DEFINES) 
 
 CXXFLAGS 		+= -DFASTBUILD -DHOST_LINUX=1 -I.  -I./src -D_GNU_SOURCE=1 -D_REENTRANT
 CXXFLAGS		+= -Isrc -Isrc/cli -Isrc/addons -Isrc/utils -Isrc/utils/tinyxml -Isrc/utils/libfat -Isrc/utils/decrypt
@@ -18,7 +18,7 @@ else ifeq ($(PROFILE), APPLY)
 CXXFLAGS		+= -fprofile-use -fbranch-probabilities
 endif
 
-LDFLAGS     = -lc -lgcc -lSDL -lm -lasound -pthread -lstdc++ -Wl,-z,norelro -Wl,--hash-style=gnu -Wl,--build-id=none -Wl,-O1,--sort-common,--as-needed,--gc-sections -flto -no-pie -s
+LDFLAGS     = -lc -lgcc -lSDL -lm -lasound -lstdc++ -Wl,-z,norelro -Wl,-O1,--sort-common,--as-needed,--gc-sections -flto -no-pie -s
 
 ifeq ($(HUGE_PAGES), 1)
 LDFLAGS		+= -Wl,-zcommon-page-size=2097152 -Wl,-zmax-page-size=2097152 -lhugetlbfs
@@ -49,7 +49,3 @@ $(OBJ_C) : %.o : %.cpp
 
 clean:
 	rm -f $(PRGNAME) *.o
-
-pack	:
-		mv $(PRGNAME) ./opk/$(PRGNAME)
-		mksquashfs ./opk desmume.opk -all-root -noappend -no-exports -no-xattrs

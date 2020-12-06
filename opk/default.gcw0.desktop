@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Desmume
-Comment=NDS emulator
-Exec=desmume.elf %f
-Icon=icon
-Terminal=false
-Categories=emulators;
-X-OD-NeedsDownscaling=true
