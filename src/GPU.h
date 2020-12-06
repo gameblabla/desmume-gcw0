@@ -815,7 +815,10 @@ static void REG_DISPx_pack_test(GPU * gpu)
 }
 #endif
 
-CACHE_ALIGN extern u8 GPU_screen[4*256*192];
+//extern u8 GPU_screen[2*(256*192)];
+#include <SDL/SDL.h>
+extern SDL_Surface* surface;
+#define GPU_screen (u8*)surface->pixels
 
 
 GPU * GPU_Init(u8 l);

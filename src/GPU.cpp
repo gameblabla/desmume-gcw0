@@ -50,7 +50,7 @@ GPU::MosaicLookup GPU::mosaicLookup;
 
 //#define DEBUG_TRI
 
-CACHE_ALIGN u8 GPU_screen[4*256*192];
+//u8 GPU_screen[4*256*192];
 CACHE_ALIGN u8 sprWin[256];
 
 

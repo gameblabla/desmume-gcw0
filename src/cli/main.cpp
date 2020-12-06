@@ -54,16 +54,18 @@ u16 keypad = 0;
 #define SDL_TRIPLEBUF SDL_DOUBLEBUF
 #endif
 
+#ifndef SDL_SWIZZLEBGR
+#define SDL_SWIZZLEBGR 0
+#endif
+
 #ifdef DISPLAY_FPS
 #define NUM_FRAMES_TO_TIME 60
 #endif
 
 #define FPS_LIMITER_FPS 60
 
-static SDL_Surface * surface, *rl_sf;
-
-/* Flags to pass to SDL_SetVideoMode */
-static int sdl_videoFlags;
+SDL_Surface * surface;
+static SDL_Surface * *rl_sf;
 
 SoundInterface_struct *SNDCoreList[] = {
   &SNDSDL,
@@ -133,7 +135,9 @@ static void Draw( void)
 	dstrect.h = 240;*/
 	SDL_BlitSurface(rl_sf, NULL, surface, &srcrect);
 #else
-	SDL_BlitSurface(rl_sf, 0, surface, 0);
+	//surface->pixels = (uint8_t*)GPU_screen;
+	//memcpy(surface->pixels, GPU_screen, (256*384)*2);
+	//SDL_BlitSurface(rl_sf, 0, surface, 0);
 #endif
 	SDL_Flip(surface);
 	return;
@@ -170,9 +174,6 @@ static void desmume_cycle()
 
 
 int main(int argc, char ** argv) {
-	int error;
-	int now;
-
 #ifdef DISPLAY_FPS
 	u32 fps_timing = 0;
 	u32 fps_frame_counter = 0;
@@ -180,6 +181,26 @@ int main(int argc, char ** argv) {
 	int limiter_frame_counter = 0;
 	int limiter_tick0 = 0;
 #endif
+
+	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1)
+    {
+      fprintf(stderr, "Error trying to initialize SDL: %s\n",
+              SDL_GetError());
+      return 1;
+	}
+	SDL_WM_SetCaption("Desmume SDL", NULL);
+	SDL_ShowCursor(0);
+#ifdef GKD350H
+	surface = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
+	rl_sf = SDL_CreateRGBSurfaceFrom((void*)&GPU_screen, 256, 384, 16, 512, 0x001F, 0x03E0, 0x7C00, 0);
+#else
+	surface = SDL_SetVideoMode(256, 384, 15, SDL_HWSURFACE | SDL_TRIPLEBUF | SDL_SWIZZLEBGR);
+    //rl_sf = SDL_CreateRGBSurfaceFrom((void*)&GPU_screen, 256, 384, 16, 512, 0x001F, 0x03E0, 0x7C00, 0);
+#endif
+    if ( !surface ) {
+      fprintf( stderr, "Video mode set failed: %s\n", SDL_GetError( ) );
+      return 0;
+    }
 
 	/* the firmware settings */
 	struct NDS_fw_config_data fw_config;
@@ -258,40 +279,19 @@ int main(int argc, char ** argv) {
 
 	backup_setManualBackupType(0);
 
-	error = NDS_LoadROM( argv[1] );
-	if (error < 0) {
+	if (NDS_LoadROM(argv[1]) < 0) {
 		fprintf(stderr, "error while loading %s\n", argv[1]);
 		exit(-1);
 	}
 
 	execute = true;
 
-	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == -1)
-    {
-      fprintf(stderr, "Error trying to initialize SDL: %s\n",
-              SDL_GetError());
-      return 1;
-	}
-	SDL_WM_SetCaption("Desmume SDL", NULL);
-	SDL_ShowCursor(0);
-#ifdef GKD350H
-	surface = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
-#else
-	surface = SDL_SetVideoMode(256, 384, 16, SDL_HWSURFACE | SDL_TRIPLEBUF);
-#endif
-    rl_sf = SDL_CreateRGBSurfaceFrom((void*)&GPU_screen, 256, 384, 16, 512, 0x001F, 0x03E0, 0x7C00, 0);
-
-    if ( !surface ) {
-      fprintf( stderr, "Video mode set failed: %s\n", SDL_GetError( ) );
-      exit( -1);
-    }
-
 	/* Initialize joysticks */
 	if(!init_joy()) return 1;
 
 	load_default_config(cli_kb_cfg);
 	
-	loadstate_slot(1);
+	//loadstate_slot(1);
 
 	/*if(my_config.load_slot != -1){
 		loadstate_slot(my_config.load_slot);
@@ -352,12 +352,16 @@ int main(int argc, char ** argv) {
 
 	}
 	
-	savestate_slot(1);
+	//savestate_slot(1);
 
 	/* Unload joystick */
 	uninit_joy();
   
-	if (surface) SDL_FreeSurface(surface);
+	if (surface != nullptr)
+	{
+		SDL_FreeSurface(surface);
+		surface = nullptr;
+	}
 	SDL_Quit();
 	NDS_DeInit();
 	return 0;
