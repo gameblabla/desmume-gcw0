@@ -19,7 +19,7 @@
 #include <time.h>
 
 #define TIXML_USE_STL
-#include "tinyxml/tinyxml.h"
+#include "tinyxml2/tinyxml2.h"
 
 #include "advanscene.h"
 #include "../common.h"
@@ -32,6 +32,8 @@ ADVANsCEne advsc;
 #define _ADVANsCEne_BASE_VERSION_MAJOR 1
 #define _ADVANsCEne_BASE_VERSION_MINOR 0
 #define _ADVANsCEne_BASE_NAME "ADVANsCEne Nintendo DS Collection"
+
+using namespace tinyxml2;
 
 u8 ADVANsCEne::checkDB(const char *ROMserial, u32 crc)
 {
@@ -98,12 +100,12 @@ void ADVANsCEne::setDatabase(const char *path)
 
 bool ADVANsCEne::getXMLConfig(const char *in_filename)
 {
-	TiXmlDocument	*xml = NULL;
-	TiXmlElement	*el = NULL;
-	TiXmlElement	*el_configuration = NULL;
-	TiXmlElement	*el_newDat = NULL;
+	XMLDocument	*xml = NULL;
+	XMLElement	*el = NULL;
+	XMLElement	*el_configuration = NULL;
+	XMLElement	*el_newDat = NULL;
 	
-	xml = new TiXmlDocument();
+	xml = new XMLDocument();
 	if (!xml) return false;
 	if (!xml->LoadFile(in_filename)) return false;
 	el = xml->FirstChildElement("dat");
@@ -142,12 +144,12 @@ u32 ADVANsCEne::convertDB(const char *in_filename, EMUFILE* output)
 		"Flash - 512 mbit"		// FLASH 512Mbit !
 	};
 
-	TiXmlDocument	*xml = NULL;
-	TiXmlElement	*el = NULL;
-	TiXmlElement	*el_serial = NULL;
-	TiXmlElement	*el_games = NULL;
-	TiXmlElement	*el_crc32 = NULL;
-	TiXmlElement	*el_saveType = NULL;
+	XMLDocument	*xml = NULL;
+	XMLElement	*el = NULL;
+	XMLElement	*el_serial = NULL;
+	XMLElement	*el_games = NULL;
+	XMLElement	*el_crc32 = NULL;
+	XMLElement	*el_saveType = NULL;
 	u32				crc32 = 0;
 	u32				reserved = 0;
 
@@ -171,7 +173,7 @@ u32 ADVANsCEne::convertDB(const char *in_filename, EMUFILE* output)
 	time_t __time = time(NULL);
 	output->fwrite(&__time, sizeof(time_t));
 
-	xml = new TiXmlDocument();
+	xml = new XMLDocument();
 	if (!xml) return 0;
 	if (!xml->LoadFile(in_filename)) return 0;
 	el = xml->FirstChildElement("dat");
@@ -183,7 +185,7 @@ u32 ADVANsCEne::convertDB(const char *in_filename, EMUFILE* output)
 	u32 count = 0;
 	while (el)
 	{
-		TiXmlElement* title = el->FirstChildElement("title");
+		XMLElement* title = el->FirstChildElement("title");
 		if(title)
 		{
 			//just a little diagnostic
