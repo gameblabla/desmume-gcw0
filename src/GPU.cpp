@@ -2457,7 +2457,10 @@ void GPU::update_winh(int WIN_NUM)
 	{
 		for(int i=0;i<=endX;i++)
 			h_win[WIN_NUM][i] = 1;
-		for(int i=endX+1;i<startX;i++)
+			
+		/* The plus 1 is reported to cause issues, according to the linker */
+		//for(int i=endX+1;i<startX;i++)
+		for(int i=endX;i<startX;i++)
 			h_win[WIN_NUM][i] = 0;
 		for(int i=startX;i<256;i++)
 			h_win[WIN_NUM][i] = 1;
